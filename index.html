@@ -2137,6 +2137,7 @@ async function apiExamNextScenario(params) {
 
 // ══ 规则引擎 Fallback ══
 function generateResponseRules(salesMsg, scenarioId, customerType, roundIndex, historyMsgs, difficulty) {
+  const p = PERSONALITIES[customerType];
 // ── Fallback: 规则引擎 ──
   const analysis = analyzeMessage(salesMsg);
   const phase = getPhase(scenarioId, roundIndex);
