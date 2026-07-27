@@ -2780,20 +2780,27 @@ async function sendMessage(){
 async function stopExam(){
   if(!state.active)return;
   if(!confirm('确定要停止当前考核吗？已完成的部分会被保存。'))return;
-  state.active=false;
   try{
     const d=apiExamStop(state.examId);
+    state.active=false;
     showReport(d,true);
-  }catch(e){toast('停止失败: '+e.message);}
+  }catch(e){
+    console.error('停止考核失败:', e);
+    toast('停止失败: '+e.message);
+  }
 }
 
 // ═══════════════════ FINISH ═══════════════════
 async function finishExam(){
-  state.active=false;
+  if(!state.active)return;
   try{
     const d=apiExamFinish(state.examId);
+    state.active=false;
     showReport(d,false);
-  }catch(e){toast('生成报告失败: '+e.message);}
+  }catch(e){
+    console.error('完成考核失败:', e);
+    toast('生成报告失败: '+e.message);
+  }
 }
 
 function showReport(d,stopped){
@@ -2809,7 +2816,7 @@ function showReport(d,stopped){
     <h3 style="margin-bottom:8px;color:var(--primary);font-size:15px">📈 各场景得分</h3>
     <div class="dim-scores">
       ${(d.scenarioResults||[]).map(sr=>{
-        const s=EXAM_EXAM_SCENARIOS.find(sc=>sc.id===sr.scenarioId);
+        const s=EXAM_SCENARIOS.find(sc=>sc.id===sr.scenarioId);
         return `<div class="dim-item">
           <div class="dim-name">${s?s.name:sr.scenarioId} (${sr.rounds||0}轮)</div>
           <div class="dim-score">${sr.percentage}分</div>
