@@ -1,0 +1,3470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>跨洋狮 - 新人话术考核</title>
+<style>
+  :root {
+    --primary: #1A3C6D; --primary-light: #2B5797; --accent: #FF6B35;
+    --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
+    --trust: #3B82F6; --intent: #8B5CF6;
+    --bg: #F0F4FA; --card: #FFFFFF; --text: #1F2937; --text-secondary: #6B7280;
+    --border: #E5E7EB; --shadow: 0 2px 8px rgba(0,0,0,0.06); --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+    --radius: 12px; --radius-lg: 16px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height:1.6; min-height:100dvh;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app-container { max-width:1200px; margin:0 auto; padding:12px; }
+  @media(min-width:768px) { .app-container { padding:20px; } }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color:#fff; padding:16px 20px; border-radius:var(--radius-lg); margin-bottom:16px;
+    display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow-lg);
+  }
+  @media(min-width:768px) { .header { padding:20px 28px; } }
+  .header h1 { font-size:18px; font-weight:700; }
+  @media(min-width:768px) { .header h1 { font-size:22px; } }
+  .header .subtitle { font-size:12px; opacity:0.85; margin-top:2px; display:none; }
+  @media(min-width:768px) { .header .subtitle { display:block; } }
+  .header-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .header .badge { background:rgba(255,255,255,0.2); padding:6px 12px; border-radius:20px; font-size:12px; white-space:nowrap; }
+  .header .nav-link { color:#fff; text-decoration:none; font-size:13px; opacity:0.8; white-space:nowrap; }
+  .header .nav-link:hover { opacity:1; }
+
+  /* Setup */
+  .setup-card { background:var(--card); border-radius:var(--radius-lg); padding:24px; box-shadow:var(--shadow); max-width:640px; margin:0 auto; }
+  @media(min-width:768px) { .setup-card { padding:32px; } }
+  .setup-card h2 { font-size:18px; margin-bottom:20px; color:var(--primary); }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-weight:600; margin-bottom:6px; font-size:14px; }
+  .form-group input, .form-group select {
+    width:100%; padding:12px 14px; border:2px solid var(--border); border-radius:10px;
+    font-size:15px; background:#FAFBFC; font-family:inherit; -webkit-appearance:none;
+  }
+  .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--primary-light); }
+  .scenario-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media(max-width:380px) { .scenario-grid { grid-template-columns:1fr; } }
+  .scenario-card {
+    border:2px solid var(--border); border-radius:var(--radius); padding:14px 10px;
+    cursor:pointer; text-align:center; transition:all 0.2s; -webkit-tap-highlight-color:transparent;
+  }
+  .scenario-card:active { transform:scale(0.97); }
+  .scenario-card.selected { border-color:var(--primary); background:#EEF3FB; box-shadow:0 0 0 3px rgba(26,60,109,0.1); }
+  .scenario-card .icon { font-size:24px; margin-bottom:4px; }
+  .scenario-card .name { font-weight:600; font-size:13px; }
+  .scenario-card .desc { font-size:11px; color:var(--text-secondary); margin-top:2px; display:none; }
+  @media(min-width:480px) { .scenario-card .desc { display:block; } }
+
+  .btn {
+    padding:12px 24px; border:none; border-radius:10px; font-size:15px; font-weight:600;
+    cursor:pointer; transition:all 0.2s; font-family:inherit; display:inline-flex; align-items:center;
+    gap:6px; justify-content:center; -webkit-tap-highlight-color:transparent;
+  }
+  .btn:active { transform:scale(0.96); }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-light); }
+  .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+  .btn-lg { padding:14px 28px; font-size:16px; width:100%; }
+  .btn-outline { background:#fff; color:var(--primary); border:2px solid var(--primary); }
+  .btn-outline:hover { background:#F0F4FA; }
+  .btn-danger { background:var(--danger); color:#fff; }
+  .btn-danger:hover { background:#DC2626; }
+  .btn-sm { padding:6px 14px; font-size:13px; }
+
+  /* Exam Layout */
+  .exam-layout { display:none; }
+  .exam-layout.active { display:flex; flex-direction:column; gap:12px; min-height:calc(100dvh - 100px); }
+  @media(min-width:900px) { .exam-layout.active { display:grid; grid-template-columns:300px 1fr; gap:20px; } }
+
+  /* Sidebar */
+  .exam-sidebar {
+    background:var(--card); border-radius:var(--radius-lg); padding:16px; box-shadow:var(--shadow);
+  }
+  @media(min-width:900px) { .exam-sidebar { padding:20px; position:sticky; top:16px; height:fit-content; } }
+  @media(max-width:899px) {
+    .exam-sidebar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .exam-sidebar > * { flex:1; min-width:100px; }
+  }
+
+  .metric-row { display:flex; gap:10px; margin-bottom:16px; }
+  @media(max-width:899px) { .metric-row { flex:2; min-width:200px; } }
+  .metric-box {
+    flex:1; background:#F8FAFD; border-radius:10px; padding:12px; text-align:center;
+  }
+  .metric-box .m-label { font-size:11px; color:var(--text-secondary); margin-bottom:4px; }
+  .metric-box .m-value { font-size:24px; font-weight:800; }
+  @media(min-width:768px) { .metric-box .m-value { font-size:28px; } }
+  .metric-trust .m-value { color:var(--trust); }
+  .metric-intent .m-value { color:var(--intent); }
+  .metric-box .m-bar { height:4px; background:var(--border); border-radius:2px; margin-top:6px; overflow:hidden; }
+  .metric-box .m-fill { height:100%; border-radius:2px; transition:width 0.6s ease; }
+  .metric-trust .m-fill { background:var(--trust); }
+  .metric-intent .m-fill { background:var(--intent); }
+  .metric-box .m-delta { font-size:11px; margin-top:2px; }
+  .delta-up { color:var(--success); }
+  .delta-down { color:var(--danger); }
+
+  .scenario-info { background:#F8FAFD; border-radius:10px; padding:12px; margin-bottom:12px; }
+  @media(max-width:899px) { .scenario-info { flex:2; min-width:180px; } }
+  .scenario-info .label { font-size:11px; color:var(--text-secondary); }
+  .scenario-info .value { font-weight:600; font-size:13px; margin-top:1px; }
+  .scenario-info .customer-type {
+    display:inline-block; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:600; margin-top:6px;
+  }
+  .type-price { background:#FFF3E0; color:#E65100; }
+  .type-cognition { background:#E3F2FD; color:#0D47A1; }
+  .type-decision { background:#FCE4EC; color:#880E4F; }
+  .type-silent { background:#F3E5F5; color:#4A148C; }
+
+  .score-mini { text-align:center; padding:12px 0; border-top:1px solid var(--border); margin-top:12px; }
+  @media(max-width:899px) { .score-mini { flex:1; min-width:80px; border-top:none; border-left:1px solid var(--border); padding:0 0 0 12px; margin-top:0; } }
+  .score-mini .s-num { font-size:36px; font-weight:800; color:var(--primary); line-height:1; }
+  .score-mini .s-label { font-size:11px; color:var(--text-secondary); }
+
+  .stop-btn-row { margin-top:12px; text-align:center; }
+  @media(max-width:899px) { .stop-btn-row { flex:1; min-width:100px; display:flex; align-items:center; justify-content:center; } }
+
+  /* Chat */
+  .chat-container {
+    background:var(--card); border-radius:var(--radius-lg); box-shadow:var(--shadow);
+    display:flex; flex-direction:column; height:calc(100dvh - 200px); min-height:400px;
+  }
+  @media(min-width:900px) { .chat-container { height:calc(100dvh - 140px); } }
+  .chat-header {
+    padding:14px 16px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .chat-header .avatar {
+    width:38px; height:38px; border-radius:50%; background:var(--primary-light);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:16px; font-weight:700; flex-shrink:0;
+  }
+  .chat-header .info .name { font-weight:600; font-size:14px; }
+  .chat-header .info .status { font-size:11px; color:var(--success); }
+  .chat-messages {
+    flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px;
+    background:#FAFBFC; -webkit-overflow-scrolling:touch;
+  }
+  @media(min-width:768px) { .chat-messages { padding:20px; gap:16px; } }
+
+  .message { max-width:85%; animation:msgIn 0.3s ease; }
+  @media(min-width:768px) { .message { max-width:75%; } }
+  @keyframes msgIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+  .message.customer { align-self:flex-start; }
+  .message.sales { align-self:flex-end; }
+  .message .bubble {
+    padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.55; word-break:break-word;
+  }
+  @media(min-width:768px) { .message .bubble { padding:12px 16px; border-radius:16px; } }
+  .message.customer .bubble { background:#fff; border:1px solid var(--border); border-bottom-left-radius:4px; }
+  .message.sales .bubble { background:var(--primary); color:#fff; border-bottom-right-radius:4px; }
+  .message .time { font-size:10px; color:var(--text-secondary); margin-top:2px; }
+  .message.sales .time { text-align:right; }
+  .message .score-tag {
+    display:inline-block; padding:2px 8px; border-radius:8px; font-size:10px; font-weight:600; margin-top:2px;
+  }
+  .score-high { background:#E8F5E9; color:#2E7D32; }
+  .score-mid { background:#FFF3E0; color:#E65100; }
+  .score-low { background:#FFEBEE; color:#C62828; }
+
+  .message.system { align-self:center; max-width:92%; }
+  .message.system .bubble {
+    background:#FFF8E1; border:1px solid #FFE082; border-radius:8px; font-size:12px; color:#795548;
+    padding:8px 12px;
+  }
+  .message.system.feedback .bubble { background:#E8F5E9; border-color:#A5D6A7; color:#2E7D32; }
+  .message.system.warning .bubble { background:#FFF3E0; border-color:#FFCC80; color:#E65100; }
+
+  /* Chat input */
+  .chat-input-area {
+    padding:12px 14px; border-top:1px solid var(--border); display:flex; gap:10px;
+    background:#fff; border-radius:0 0 var(--radius-lg) var(--radius-lg); flex-shrink:0;
+  }
+  @media(min-width:768px) { .chat-input-area { padding:14px 20px; } }
+  .chat-input-area textarea {
+    flex:1; padding:10px 14px; border:2px solid var(--border); border-radius:10px;
+    font-size:14px; resize:none; min-height:42px; max-height:100px; font-family:inherit;
+    -webkit-appearance:none;
+  }
+  .chat-input-area textarea:focus { outline:none; border-color:var(--primary-light); }
+  .chat-input-area .send-btn {
+    width:42px; height:42px; border-radius:10px; background:var(--primary); color:#fff;
+    border:none; cursor:pointer; font-size:18px; display:flex; align-items:center;
+    justify-content:center; flex-shrink:0; -webkit-tap-highlight-color:transparent;
+  }
+  .chat-input-area .send-btn:active { background:var(--primary-light); transform:scale(0.95); }
+  .chat-input-area .send-btn:disabled { opacity:0.4; }
+
+  /* Report */
+  .report-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100;
+    justify-content:center; align-items:flex-start; padding:12px; overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  @media(min-width:768px) { .report-overlay { align-items:center; padding:20px; } }
+  .report-overlay.active { display:flex; }
+  .report-card {
+    background:var(--card); border-radius:var(--radius-lg); padding:24px;
+    max-width:640px; width:100%; box-shadow:var(--shadow-lg); margin:auto;
+  }
+  @media(min-width:768px) { .report-card { padding:36px; } }
+  .report-card h2 { text-align:center; color:var(--primary); margin-bottom:4px; font-size:20px; }
+  .report-card .stopped-tag {
+    display:inline-block; background:#FFF3E0; color:#E65100; padding:3px 10px;
+    border-radius:10px; font-size:12px; font-weight:600;
+  }
+  .overall-score { text-align:center; margin:16px 0; }
+  .overall-score .big-num {
+    font-size:56px; font-weight:900; line-height:1;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .grade-badge { display:inline-block; padding:5px 16px; border-radius:16px; font-weight:700; font-size:13px; margin-top:6px; }
+  .grade-excellent { background:#E8F5E9; color:#2E7D32; }
+  .grade-good { background:#E3F2FD; color:#0D47A1; }
+  .grade-pass { background:#FFF3E0; color:#E65100; }
+  .grade-fail { background:#FFEBEE; color:#C62828; }
+
+  .dim-scores { display:grid; grid-template-columns:1fr; gap:10px; margin:16px 0; }
+  @media(min-width:480px) { .dim-scores { grid-template-columns:repeat(2,1fr); } }
+  .dim-item { background:#F8FAFD; border-radius:10px; padding:14px; border-left:4px solid var(--primary); }
+  .dim-item .dim-name { font-weight:600; font-size:13px; }
+  .dim-item .dim-score { font-size:12px; color:var(--text-secondary); }
+  .dim-item .dim-bar-bg { height:5px; background:var(--border); border-radius:3px; margin-top:6px; }
+  .dim-item .dim-bar-fill { height:100%; border-radius:3px; }
+
+  .feedback-section { margin-top:16px; }
+  .feedback-section h3 { font-size:15px; color:var(--primary); margin-bottom:8px; }
+  .feedback-item { padding:10px 14px; border-radius:8px; margin-bottom:6px; font-size:13px; display:flex; gap:8px; align-items:flex-start; }
+  .feedback-good { background:#E8F5E9; color:#2E7D32; }
+  .feedback-improve { background:#FFF3E0; color:#E65100; }
+  .btn-row { display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+
+  /* Admin */
+  .admin-panel { display:none; }
+  .admin-panel.active { display:block; }
+  .stats-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+  @media(min-width:600px) { .stats-grid { grid-template-columns:repeat(4,1fr); } }
+  .stat-card { background:var(--card); border-radius:10px; padding:16px; box-shadow:var(--shadow); text-align:center; }
+  .stat-card .stat-num { font-size:26px; font-weight:800; color:var(--primary); }
+  .stat-card .stat-label { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .exam-table { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .exam-table table { width:100%; border-collapse:collapse; min-width:600px; }
+  .exam-table th { background:#F8FAFD; padding:10px 12px; text-align:left; font-size:12px; font-weight:600; color:var(--text-secondary); border-bottom:2px solid var(--border); white-space:nowrap; }
+  .exam-table td { padding:10px 12px; font-size:13px; border-bottom:1px solid var(--border); }
+  .exam-table tr:active { background:#F8FAFD; }
+  .exam-table .clickable { color:var(--primary); cursor:pointer; font-weight:600; }
+
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-start; padding:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .modal-overlay.active { display:flex; }
+  .modal { background:var(--card); border-radius:var(--radius-lg); padding:20px; max-width:700px; width:100%; max-height:85dvh; overflow-y:auto; box-shadow:var(--shadow-lg); margin:auto; }
+  .modal h3 { color:var(--primary); margin-bottom:12px; font-size:17px; }
+  .chat-transcript { background:#FAFBFC; border-radius:10px; padding:12px; max-height:350px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .transcript-msg { margin-bottom:10px; padding:8px 12px; border-radius:8px; }
+  .transcript-msg.customer { background:#fff; border:1px solid var(--border); }
+  .transcript-msg.sales { background:#EEF3FB; border:1px solid #C5D5EA; }
+  .transcript-msg .role { font-size:10px; font-weight:600; color:var(--text-secondary); margin-bottom:2px; }
+  .transcript-msg .text { font-size:13px; }
+  .transcript-msg .score-info { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  /* Typing */
+  .typing-indicator { display:flex; gap:3px; padding:6px 0; }
+  .typing-indicator span { width:7px; height:7px; background:var(--text-secondary); border-radius:50%; animation:bounce 1.4s infinite; }
+  .typing-indicator span:nth-child(2) { animation-delay:0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay:0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0);} 30%{transform:translateY(-5px);} }
+
+  .hidden { display:none !important; }
+
+  /* Toast */
+  .toast {
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:300;
+    background:#1F2937; color:#fff; padding:12px 24px; border-radius:24px; font-size:14px;
+    animation:toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+    pointer-events:none;
+  }
+  @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(20px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+  @keyframes toastOut { from{opacity:1;} to{opacity:0;} }
+</style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>🎯 跨洋狮话术考核</h1>
+      <div class="subtitle">AI智能客户 · 实时评分 · 信任度追踪 <span id="aiModeBadge" style="font-size:11px;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:8px;margin-left:4px;"></span></div>
+    </div>
+    <div class="header-right">
+      <span class="badge" id="headerBadge">🏢 跨洋狮</span>
+      <a href="#" class="nav-link" onclick="showAdmin()" id="adminLink">📊 后台</a>
+      <a href="#" class="nav-link hidden" onclick="showExamEntry()" id="examLink">🎯 考核</a>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="setup-card" id="setupScreen">
+    <h2>📋 开始考核</h2>
+    <div class="form-group">
+      <label>👤 你的姓名</label>
+      <input type="text" id="traineeName" placeholder="输入姓名..." value="">
+    </div>
+    <div class="form-group">
+      <label>📂 选择场景（可多选）</label>
+      <div class="scenario-grid" id="scenarioGrid"></div>
+    </div>
+    <div class="form-group">
+      <label>🎯 难度</label>
+      <select id="difficulty">
+        <option value="easy">初级 - 客户配合度高</option>
+        <option value="medium" selected>中级 - 标准客户+常见异议</option>
+        <option value="hard">高级 - 高难度客户</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="startExam()">🚀 开始考核</button>
+  </div>
+
+  <!-- EXAM -->
+  <div class="exam-layout" id="examScreen">
+    <div class="exam-sidebar">
+      <div class="metric-row">
+        <div class="metric-box metric-trust">
+          <div class="m-label">🤝 客户信任度</div>
+          <div class="m-value" id="trustValue">25</div>
+          <div class="m-bar"><div class="m-fill" id="trustBar" style="width:25%"></div></div>
+          <div class="m-delta" id="trustDelta"></div>
+        </div>
+        <div class="metric-box metric-intent">
+          <div class="m-label">💰 购买意愿</div>
+          <div class="m-value" id="intentValue">20</div>
+          <div class="m-bar"><div class="m-fill" id="intentBar" style="width:20%"></div></div>
+          <div class="m-delta" id="intentDelta"></div>
+        </div>
+      </div>
+      <div class="scenario-info">
+        <div class="label">当前场景</div><div class="value" id="currentScenario">-</div>
+        <div class="label" style="margin-top:6px">客户</div><div class="value" id="customerNameDisplay">-</div>
+        <div class="customer-type" id="customerTypeTag">-</div>
+        <div class="label" style="margin-top:6px">轮次</div><div class="value" id="roundCount">0</div>
+      </div>
+      <div class="score-mini">
+        <div class="s-num" id="liveScore">-</div>
+        <div class="s-label">最新评分</div>
+      </div>
+      <div class="stop-btn-row">
+        <button class="btn btn-danger btn-sm" onclick="stopExam()">⏹ 停止考核</button>
+      </div>
+    </div>
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="avatar" id="customerAvatar">客</div>
+        <div class="info">
+          <div class="name" id="customerName">客户</div>
+          <div class="status" id="customerStatus">● 在线</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area" id="chatInputArea">
+        <textarea id="userInput" placeholder="输入回复..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+        <button class="send-btn" onclick="sendMessage()" id="sendBtn">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="admin-panel" id="adminPanel">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div id="llmConfigPanel" style="background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);display:none;">
+      <h3 style="font-size:15px;color:var(--primary);margin-bottom:12px;">🤖 大模型配置</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+        <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Provider</label>
+          <select id="llmProvider" onchange="updateLlmConfig()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+            <option value="">未启用</option><option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option><option value="zhipu">智谱GLM</option>
+          </select></div>
+        <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">API Key</label>
+          <input type="password" id="llmApiKey" placeholder="sk-..." onchange="updateLlmConfig()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+        <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Model</label>
+          <input type="text" id="llmModel" placeholder="默认模型" onchange="updateLlmConfig()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+        <div style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-sm" onclick="updateLlmConfig()" style="width:100%;">💾 保存配置</button></div>
+      </div>
+      <div id="llmStatus" style="margin-top:8px;font-size:12px;color:var(--text-secondary);"></div>
+    </div>
+    <div class="exam-table" id="examTable"></div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="report-overlay" id="reportOverlay"><div class="report-card" id="reportCard"></div></div>
+  <!-- DETAIL -->
+  <div class="modal-overlay" id="detailModal"><div class="modal" id="detailContent"></div></div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+//  内嵌后端逻辑 — 无需服务器
+// ═══════════════════════════════════════════════════════════════
+
+// ── SQLite via sql.js (loaded from CDN) ──
+let SQL = null;
+let db = null;
+
+async function initDatabase() {
+  if (db) return db;
+  // Load sql.js from CDN
+  if (!SQL) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js';
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Failed to load sql.js'));
+      document.head.appendChild(script);
+    });
+    SQL = await initSqlJs({ locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/' + f });
+  }
+  
+  // Try to restore from localStorage
+  const saved = localStorage.getItem('exam_db_data');
+  if (saved) {
+    try {
+      const arr = JSON.parse(saved);
+      db = new SQL.Database(new Uint8Array(arr));
+    } catch(e) {
+      db = new SQL.Database();
+    }
+  } else {
+    db = new SQL.Database();
+  }
+  
+  // Create tables
+  db.run(`CREATE TABLE IF NOT EXISTS exams (
+    id TEXT PRIMARY KEY, trainee_name TEXT, difficulty TEXT, scenarios TEXT,
+    overall_score INTEGER, grade TEXT, started_at TEXT, finished_at TEXT, status TEXT DEFAULT 'in_progress'
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS exam_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, exam_id TEXT, scenario_id TEXT,
+    round_index INTEGER, role TEXT, content TEXT, score INTEGER, feedback TEXT, created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS scenario_scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, exam_id TEXT, scenario_id TEXT,
+    total_score INTEGER, max_score INTEGER, percentage INTEGER
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS exam_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, exam_id TEXT, scenario_id TEXT,
+    round_index INTEGER, trust_level INTEGER, intent_level INTEGER,
+    trust_delta INTEGER, intent_delta INTEGER, created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  
+  return db;
+}
+
+function saveDb() {
+  if (!db) return;
+  try {
+    const data = db.export();
+    localStorage.setItem('exam_db_data', JSON.stringify(Array.from(data)));
+  } catch(e) {
+    console.warn('Failed to save DB to localStorage:', e.message);
+  }
+}
+
+function dbRun(sql, params = []) {
+  db.run(sql, params);
+  saveDb();
+}
+
+function dbGet(sql, params = []) {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  if (stmt.step()) {
+    const cols = stmt.getColumnNames();
+    const vals = stmt.get();
+    const row = {};
+    cols.forEach((c, i) => row[c] = vals[i]);
+    stmt.free();
+    return row;
+  }
+  stmt.free();
+  return null;
+}
+
+function dbAll(sql, params = []) {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  const rows = [];
+  while (stmt.step()) {
+    const cols = stmt.getColumnNames();
+    const vals = stmt.get();
+    const row = {};
+    cols.forEach((c, i) => row[c] = vals[i]);
+    rows.push(row);
+  }
+  stmt.free();
+  return rows;
+}
+
+// ── UUID generator (browser-compatible) ──
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+// ── LLM Client (browser fetch) ──
+const LLM_PROVIDERS = {
+  deepseek: { baseURL: 'https://api.deepseek.com/v1', defaultModel: 'deepseek-chat', name: 'DeepSeek' },
+  openai: { baseURL: 'https://api.openai.com/v1', defaultModel: 'gpt-4o-mini', name: 'OpenAI' },
+  zhipu: { baseURL: 'https://open.bigmodel.cn/api/paas/v4', defaultModel: 'glm-4-flash', name: '智谱GLM' },
+};
+
+let llmConfig = {
+  provider: localStorage.getItem('llm_provider') || '',
+  apiKey: localStorage.getItem('llm_api_key') || '',
+  model: localStorage.getItem('llm_model') || '',
+  temperature: 0.85,
+  timeout: 15000,
+  enabled: !!localStorage.getItem('llm_api_key'),
+  consecutiveFailures: 0,
+  maxFailures: 3,
+};
+
+function getLlmConfig() {
+  return {
+    provider: llmConfig.provider,
+    model: llmConfig.model || (LLM_PROVIDERS[llmConfig.provider]?.defaultModel || 'deepseek-chat'),
+    enabled: llmConfig.enabled,
+    hasKey: !!llmConfig.apiKey,
+    temperature: llmConfig.temperature,
+    failures: llmConfig.consecutiveFailures,
+  };
+}
+
+function updateLlmConfigBrowser(newConfig) {
+  if (newConfig.provider !== undefined) {
+    llmConfig.provider = newConfig.provider;
+    localStorage.setItem('llm_provider', newConfig.provider);
+  }
+  if (newConfig.apiKey !== undefined) {
+    llmConfig.apiKey = newConfig.apiKey;
+    llmConfig.enabled = !!newConfig.apiKey;
+    localStorage.setItem('llm_api_key', newConfig.apiKey);
+  }
+  if (newConfig.model !== undefined) {
+    llmConfig.model = newConfig.model;
+    localStorage.setItem('llm_model', newConfig.model);
+  }
+  llmConfig.consecutiveFailures = 0;
+  return getLlmConfig();
+}
+
+async function generateCustomerReplyLLM(salesMsg, context) {
+  if (llmConfig.consecutiveFailures >= llmConfig.maxFailures) return null;
+  if (!llmConfig.apiKey) return null;
+
+  const provider = LLM_PROVIDERS[llmConfig.provider];
+  const baseURL = provider?.baseURL || 'https://api.deepseek.com/v1';
+  const model = llmConfig.model || provider?.defaultModel || 'deepseek-chat';
+  const systemPrompt = buildSystemPrompt(context);
+  const messages = buildLLMMessages(systemPrompt, context.historyMsgs || [], salesMsg);
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), llmConfig.timeout);
+
+    const resp = await fetch(baseURL + '/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + llmConfig.apiKey,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: llmConfig.temperature,
+        max_tokens: 300,
+        top_p: 0.9,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!resp.ok) {
+      if (resp.status === 401 || resp.status === 403) {
+        llmConfig.enabled = false;
+        console.error('[LLM] API Key 无效');
+      }
+      llmConfig.consecutiveFailures++;
+      return null;
+    }
+
+    const data = await resp.json();
+    llmConfig.consecutiveFailures = 0;
+    const reply = data.choices?.[0]?.message?.content?.trim();
+    if (!reply) return null;
+    return cleanLLMReply(reply);
+  } catch (e) {
+    llmConfig.consecutiveFailures++;
+    console.error('[LLM] 调用失败:', e.message?.slice(0, 80));
+    return null;
+  }
+}
+
+function buildSystemPrompt(context) {
+  const { scenarioId, customerType, roundIndex, difficulty } = context;
+  const p = getPersonalityProfile(customerType);
+  const s = getScenarioProfile(scenarioId);
+  return `你正在扮演一���外贸公司的老板/负责人，正在和"跨洋狮"公司的销售沟通。
+
+## 你的背景
+${p.backstory}
+
+## 你的性格
+${p.traits}
+
+## 说话风格
+${p.speech}
+
+## 当前场景
+${s.context}
+这是对话的第 ${roundIndex + 1} 轮。
+
+## 核心规则
+1. 用真实口语化的中文回复，像微信聊天一样自然
+2. 回复1-3句话，不要长篇大论
+3. 如果销售催你交钱、态度pushy、或讲套话 → 表达不满
+4. 如果销售说专业术语太多 → 说听不懂
+5. 不要主动说"我买了""我定了"，但可以表示"有道理""了解了"
+6. 偶尔提到真实场景：合伙人、朋友说、淘宝上、之前被坑过等
+7. 只输出你的回复内容，不要加任何前缀或引号`;
+}
+
+function getPersonalityProfile(type) {
+  const profiles = {
+    price: {
+      backstory: '做了3年外贸，之前在阿里国际站上投了十几万，效果一般。现在想试试独立站但又怕花冤枉钱。对任何"花钱"的事情都本能抵触。',
+      traits: '表面上客气，骨子里精明。喜欢直接算账，讨厌画大饼。对价格极度敏感。',
+      speech: '口头禅："说实话""讲真的""说白了""关键是值不值"。最反感虚词。说话直接。',
+    },
+    cognition: {
+      backstory: '传统外贸做了五六年，靠展会和老客户维持。听说过独立站但不太懂，怕自己搞不定。对技术术语一窍不通。',
+      traits: '谦虚、好学但容易懵。希望别人用大白话解释。喜欢听案例和故事。',
+      speech: '口头禅："不太懂""简单点说""举个例子""像我这样的"。最反感专业术语。',
+    },
+    decision: {
+      backstory: '公司两个人合伙，自己负责业务，合伙人管财务。自己觉得独立站好，但合伙人保守，每次花钱都要商量。',
+      traits: '自己有意向但决策权不完整。最怕回去跟合伙人商量。需要别人帮他准备说服材料。',
+      speech: '口头禅："我得跟合伙人商量""你能给我点什么""我回去说说看"。最反感催他马上决定。',
+    },
+    silent: {
+      backstory: '被太多销售骚扰过，加了微信基本不主动说话。不是没兴趣，而是习惯保持距离。',
+      traits: '话少、防备心重。但如果遇到真正懂他需求的人，会慢慢打开话匣子。讨厌被催促。',
+      speech: '回复很短：1-5个字。口头禅："嗯""哦""行""看看""再说"。最反感"在吗""考虑得怎么样"。',
+    },
+  };
+  return profiles[type] || profiles.price;
+}
+
+function getScenarioProfile(scenarioId) {
+  const profiles = {
+    'first-call': { context: '首通电话场景。销售刚打来电话，你是第一次听说跨洋狮。你在抖音上留过线索。你有点忙但愿意花几分钟了解。' },
+    'spin': { context: 'SPIN挖需场景。已经加微信聊过一次了，你同意深入聊聊。你目前主要靠阿里国际站获客，效果一般。' },
+    'objection': { context: '异议处理场景。销售给你发了方案和案例，你脑子里有一堆疑问。觉得价格贵、怕没效果。' },
+    'closing': { context: '逼单成交场景。经过几轮沟通，你基本认可了，但还在犹豫——临门一脚的时刻。' },
+    'followup': { context: '跟进激活场景。上次聊完过了几天，你忙起来就忘了。销售来跟进，你有点印象但热情降下来了。' },
+  };
+  return profiles[scenarioId] || profiles['first-call'];
+}
+
+function buildLLMMessages(systemPrompt, historyMsgs, currentSalesMsg) {
+  const msgs = [{ role: 'system', content: systemPrompt }];
+  const recent = (historyMsgs || []).slice(-20);
+  for (const msg of recent) {
+    if (msg.role === 'sales') {
+      msgs.push({ role: 'user', content: '销售说：' + msg.content });
+    } else {
+      msgs.push({ role: 'assistant', content: msg.content });
+    }
+  }
+  msgs.push({ role: 'user', content: '销售说：' + currentSalesMsg });
+  return msgs;
+}
+
+function cleanLLMReply(text) {
+  let cleaned = text
+    .replace(/^(客户|顾客|老板|我|你)说?[：:]\s*/i, '')
+    .replace(/^["「『]\s*/, '')
+    .replace(/\s*["」』]$/, '')
+    .replace(/^["']|["']$/g, '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+    .trim();
+  if (!cleaned || cleaned.length < 1) return null;
+  if (cleaned.length > 500) cleaned = cleaned.slice(0, 500) + '...';
+  return cleaned;
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════
+ *  跨洋狮 AI 客户模拟器 v3 — 智能对话引擎
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * 设计理念：
+ *   不是"模板随机选择"，而是模拟一个真实客户的心理决策过程。
+ *
+ * 核心机制：
+ *   1. 客户状态机（怀疑→了解→考虑→认可→行动）
+ *   2. 话题记忆网络（客户会记住你说了什么、追问未回答的问题）
+ *   3. 情绪曲线（不是简单 mood 分数，而是多维情绪向量）
+ *   4. 上下文连贯回复（每一句话都基于之前的对话历史）
+ *   5. 人格语音（每种客户类型有独特的说话方式、口头禅、节奏）
+ *   6. LLM 驱动（支持 DeepSeek/OpenAI/智谱大模型，自动降级到规则引擎）
+ */
+
+// llmClient will be defined globally
+
+// ═══════════════════════════════════════════════════════
+//  客户人格档案
+// ═══════════════════════════════════════════════════════
+
+const PERSONALITIES = {
+  price: {
+    id: 'price',
+    name: '价格敏感型',
+    backstory: '做了3年外贸，之前在阿里国际站上投了十几万，效果一般。现在想试试独立站但又怕花冤枉钱。对任何"花钱"的事情都本能抵触。',
+    traits: {
+      patience: 0.5,
+      trust: 0.35,
+      talkativeness: 0.6,
+      politeness: 0.7,
+      skepticism: 0.85,
+      impulsiveness: 0.2,
+    },
+    speech: {
+      sentenceLength: 'medium',
+      useModal: true,
+      favoriteWords: ['说实话', '讲真的', '划不划算', '花这个钱', '值不值', '说白了'],
+      hatesWords: ['投资回报率', '赋能', '闭环', '底层逻辑'],
+      questionStyle: 'direct',
+      emotional: false,
+    },
+    coreConcerns: ['价格是否合理', '能否带来订单', '和阿里国际站比有什么优势', '有没有更便宜的选择'],
+    trustBuilders: ['算账', '案例', '具体数字', '同行效果', '投入产出'],
+    trustBreakers: ['画大饼', '讲概念', '催着交钱', '回避价格问题'],
+    baseTrust: 25,
+    baseIntent: 30,
+  },
+
+  cognition: {
+    id: 'cognition',
+    name: '认知不足型',
+    backstory: '传统外贸做了五六年，靠展会和老客户维持。听说过独立站但不太懂，感觉是很高大上的东西，怕自己搞不定。对技术术语一窍不通，希望有人能翻译成大白话。',
+    traits: {
+      patience: 0.75,
+      trust: 0.5,
+      talkativeness: 0.55,
+      politeness: 0.85,
+      skepticism: 0.5,
+      impulsiveness: 0.3,
+    },
+    speech: {
+      sentenceLength: 'medium',
+      useModal: true,
+      favoriteWords: ['不太懂', '什么意思', '简单点说', '举个例子', '像我这样的', '会不会很麻烦'],
+      hatesWords: ['SEO', '域名解析', '服务器配置', '插件', '代码'],
+      questionStyle: 'clarifying',
+      emotional: false,
+    },
+    coreConcerns: ['这东西到底怎么用', '我不会技术能不能做', '做了真的有人看吗', '会不会很复杂'],
+    trustBuilders: ['大白话解释', '案例展示', '操作演示', '简单类比', '同类客户故事'],
+    trustBreakers: ['堆术语', '讲理论', '不给看实际效果', '说得太玄乎'],
+    baseTrust: 20,
+    baseIntent: 15,
+  },
+
+  decision: {
+    id: 'decision',
+    name: '决策受阻型',
+    backstory: '公司是两个人合伙的，自己是负责业务的，还有个合伙人管财务。自己觉得独立站挺好的，但合伙人比较保守，每次花钱都要两人商量。最怕的就是"回去跟合伙人商量"这个环节——因为合伙人大概率会说"再看看吧"。',
+    traits: {
+      patience: 0.6,
+      trust: 0.5,
+      talkativeness: 0.75,
+      politeness: 0.8,
+      skepticism: 0.45,
+      impulsiveness: 0.25,
+    },
+    speech: {
+      sentenceLength: 'long',
+      useModal: true,
+      favoriteWords: ['我得跟合伙人商量', '他也不太懂这个', '你能给我点什么', '我回去说说看', '他那边...', '主要是他'],
+      hatesWords: ['今天就定', '不用商量', '你自己决定'],
+      questionStyle: 'delegating',
+      emotional: true,
+    },
+    coreConcerns: ['怎么说服合伙人', '有没有能拿给合伙人看的材料', '合伙人的顾虑怎么解决'],
+    trustBuilders: ['提供说服工具', '方案对比', '数据报告', '帮他准备好给合伙人看的东西'],
+    trustBreakers: ['逼他马上决定', '忽视合伙人角色', '说你自己决定就行'],
+    baseTrust: 30,
+    baseIntent: 40,
+  },
+
+  silent: {
+    id: 'silent',
+    name: '沉默观��型',
+    backstory: '可能是被太多销售骚扰过，也可能是本身性格就比较冷。加了微信但基本不主动说话，回复也都很简短。不是没兴趣，而是习惯性地保持距离。需要特别的方式才能撬开他的话匣子。',
+    traits: {
+      patience: 0.85,
+      trust: 0.25,
+      talkativeness: 0.2,
+      politeness: 0.55,
+      skepticism: 0.7,
+      impulsiveness: 0.1,
+    },
+    speech: {
+      sentenceLength: 'very_short',
+      useModal: false,
+      favoriteWords: ['嗯', '哦', '行', '看看', '再说', '忙'],
+      hatesWords: ['在吗', '考虑得怎么样', '什么时候方便'],
+      questionStyle: 'minimal',
+      emotional: false,
+    },
+    coreConcerns: ['这人靠谱吗', '是不是又来推销的', '值不值得我花时间聊'],
+    trustBuilders: ['不啰嗦', '有干货', '尊重他的节奏', '不频繁打扰'],
+    trustBreakers: ['频繁发消息', '问在吗', '催回复', '长篇大论'],
+    baseTrust: 15,
+    baseIntent: 10,
+  },
+};
+
+// ═══════════════════════════════════════════════════════
+//  场景定义
+// ═══════════════════════════════════════════════════════
+
+const SCENARIOS = {
+  'first-call': {
+    id: 'first-call',
+    title: '首通电话',
+    context: '客户刚在抖音留了线索，20分钟内接到了跨洋狮的电话。客户有点意外，但正好有空。',
+    maxRounds: { easy: 6, medium: 5, hard: 4 },
+    phases: [
+      { name: '戒备', rounds: [0], description: '突然接到陌生电话，本能防备' },
+      { name: '试探', rounds: [1, 2], description: '愿意听，但还在判断是否值得继续' },
+      { name: '了解', rounds: [3, 4], description: '开始认真了解，提具体问题' },
+      { name: '收尾', rounds: [5], description: '决定是否继续深入沟通' },
+    ],
+  },
+  'spin': {
+    id: 'spin',
+    title: 'SPIN挖需',
+    context: '已经加微信聊过一次了，客户同意花时间深入聊聊。目前客户在用阿里国际站，效果一般般。',
+    maxRounds: { easy: 7, medium: 6, hard: 5 },
+    phases: [
+      { name: '寒暄', rounds: [0], description: '简单打招呼，放松气氛' },
+      { name: '现状探询', rounds: [1, 2], description: '了解客户目前的获客方式和痛点' },
+      { name: '难点放大', rounds: [3, 4], description: '让客户意识到问题的严重性' },
+      { name: '方案引出', rounds: [5], description: '自然引入独立站作为解决方案' },
+    ],
+  },
+  'objection': {
+    id: 'objection',
+    title: '异议处理',
+    context: '客户看了方案和案例，脑子里有一堆疑问。觉得价格贵、怕没效果、不知道和现有渠道怎么配合。',
+    maxRounds: { easy: 7, medium: 6, hard: 5 },
+    phases: [
+      { name: '抛出异议', rounds: [0, 1], description: '主动表达顾虑和质疑' },
+      { name: '等待回应', rounds: [2, 3], description: '看销售怎么接招' },
+      { name: '深度追问', rounds: [4], description: '针对回答继续深挖' },
+      { name: '态度缓和', rounds: [5], description: '如果回答得好，开始松动' },
+    ],
+  },
+  'closing': {
+    id: 'closing',
+    title: '逼单成交',
+    context: '经过几轮沟通，客户基本认可独立站的价值，但还在犹豫——这是临门一脚的时刻。',
+    maxRounds: { easy: 6, medium: 5, hard: 4 },
+    phases: [
+      { name: '最后犹豫', rounds: [0, 1], description: '还在纠结，需要最后一推' },
+      { name: '条件试探', rounds: [2], description: '看看有没有优惠或保障' },
+      { name: '决定时刻', rounds: [3, 4], description: '要么成交要么流失' },
+    ],
+  },
+  'followup': {
+    id: 'followup',
+    title: '跟进激活',
+    context: '上次聊完已经过了几天，客户忙起来就忘了这回事。销售来跟进，客户有点印象但热情已经降下来了。',
+    maxRounds: { easy: 5, medium: 4, hard: 3 },
+    phases: [
+      { name: '重新连接', rounds: [0], description: '唤起记忆，重新建立联系' },
+      { name: '价值提醒', rounds: [1, 2], description: '提醒客户当初为什么感兴趣' },
+      { name: '重新推进', rounds: [3], description: '尝试推动到下一步' },
+    ],
+  },
+};
+
+// ═══════════════════════════════════════════════════════
+//  开场白
+// ═══════════════════════════════════════════════════════
+
+const OPENINGS = {
+  'first-call': {
+    price: [
+      '喂？哦...跨洋狮啊。你们是做什么的来着？是不是做网站那种？多少钱啊大概？',
+      '（接起电话，背景有点嘈杂）喂你好。跨洋狮？我在抖音上好像刷到过你们。你简单说说，别太啰嗦。',
+    ],
+    cognition: [
+      '喂？你好你好。跨洋狮是吧...我在抖音上看到你们的广告，就留了个电话。但我其实不太懂你们具体做什么的，你能给我讲讲吗？',
+      '（电话接通）喂？哦，你是那个...跨洋狮的对吧。我那天刷抖音看到的，感觉挺新鲜的，但说实话我没太看懂你们是干嘛的。',
+    ],
+    decision: [
+      '喂你好。对，我在抖音上留了信息。你们做独立站的对吧？我其实一直想了解这一块，但公司的事不是我一个人说了算，我先了解了解。',
+      '你好。跨洋狮是吧？我简单了解一下。我们公司两个人合伙的，做什么决定都得商量着来。你先跟我说说你们的情况吧。',
+    ],
+    silent: [
+      '嗯，你说。',
+      '（简短停顿）嗯，跨洋狮，我记得。你继续。',
+    ],
+  },
+  'spin': {
+    price: [
+      '小李啊，上次聊完我回去想了一下。你说的独立站我大概明白了，但说实话我最大的顾虑还是价格。2980说多不多说少不少，关键是投了得看到效果啊。',
+      '嗯，你上次说帮我分析一下现在的推广情况。不过先说好，我是做小生意的，预算有限，太贵的东西我弄不了。',
+    ],
+    cognition: [
+      '小李你好。上次你给我发了些资料，我大概扫了一眼...说实话很多地方没看明白。你能不能用大白话再给我讲讲？别用那些专业术语。',
+      '你好你好。上次聊完我感觉信息量有点大，回去消化了一下。有几个地方还是不太理解，比如独立站到底怎么给我带来客户呢？',
+    ],
+    decision: [
+      '小李啊，我回去跟合伙人提了一嘴。他说可以了解一下，但让我别急着做决定。所以你先跟我说说，我好有个底，回去也好跟他讲。',
+      '嗯，我合伙人那边...怎么说呢，他比较保守。你能给我点东西让我拿去给他看看吗？光靠我说他不太信。',
+    ],
+    silent: [
+      '嗯。你说吧，我听着。',
+      '好。',
+    ],
+  },
+  'objection': {
+    price: [
+      '我看了一下你发的方案。说实话，2980块钱建个网站，我在淘宝上500块就能做一个。你们这个凭什么贵这么多？',
+      '方案收到了，案例也看了。但我这人比较实在——你直接告诉我，花2980和花500的区别到底在哪？别讲虚的。',
+    ],
+    cognition: [
+      '资料我看了...但说句实话，我看了也不太确定这东西对我有没有用。我现在的客户都是老客户介绍的，独立站真的能带来新客户吗？',
+      '案例看着挺好的，但那些公司跟我情况不太一样吧？人家可能本来就做得大，我这种小公司做了能有效果吗？',
+    ],
+    decision: [
+      '方案我看了，我个人觉得还行。但问题是我合伙人那边...他觉得我们现在的渠道够用了，没必要再花钱搞新东西。你有什么能帮我说服他的吗？',
+      '我自己是觉得独立站这个方向挺好的，但你也知道，两个人合伙，不是我一个人说了算。他问我"这钱花得值不值"，我也答不上来。',
+    ],
+    silent: [
+      '看了。有几个问题。',
+      '嗯，方案收到了。你说说看。',
+    ],
+  },
+  'closing': {
+    price: [
+      '说实话，聊了这么几轮，我大概了解独立站的价值了。但2980对我来说还是一笔钱。你要是能优惠点，比如2000以内，我可能今天就定了。',
+      '方案和案例我都认可。但你也知道现在生意不好做，每一分钱都得掂量。你这边有没有什么保障？比如做了没效果怎么办？',
+    ],
+    cognition: [
+      '感觉是挺好的，我也觉得独立站是个趋势。但我就是怕做了之后自己搞不定——你们后续会帮忙吗？还是建完就不管了？',
+      '我基本想通了，独立站确实应该做。但你能不能给我看看，跟我差不多情况的公司，做了之后大概是什么样的效果？让我心里有个底。',
+    ],
+    decision: [
+      '我个人已经决定了，觉得可以做。但还得回去跟合伙人最后确认一下。你能不能给我一份正式的方案，我可以打印出来给他看的那种？',
+      '我是想做的。但你也知道，我得跟合伙人再碰一次。你这边有没有什么办法能让这个过程快一点？比如你们有没有人可以直接跟他聊聊？',
+    ],
+    silent: [
+      '嗯...还可以。不过我不着急，最近手头事多。',
+      '行，我知道了。我考虑考虑，想好了找你。',
+    ],
+  },
+  'followup': {
+    price: [
+      '哦，小李啊。上次聊完我一直在忙，没顾上。那个方案我还记得，但说实话价格方面我还是在犹豫。',
+      '你好。这几天忙着发货，没时间想网站的事。你那个方案还在吧？我记得好像是2980？',
+    ],
+    cognition: [
+      '小李你好。不好意思这几天太忙了。你上次说的那些，我记不太清了，你能再简单说一下吗？',
+      '你好你好。上次聊完我其实挺感兴趣的，但说实话还是有点懵。你能不能再给我梳理一下？',
+    ],
+    decision: [
+      '小李啊，不好意思这几天没联系你。我跟合伙人提了，他没说不行但也没说行。就让我再了解了解。',
+      '你好。上次聊完之后我跟合伙人简单说了下，他说要考虑。你这边有没有什么新的东西可以发我看看？',
+    ],
+    silent: [
+      '嗯，记得。',
+      '好。你说。',
+    ],
+  },
+};
+
+// ═══════════════════════════════════════════════════════
+//  对话记忆网络
+// ═══════════════════════════════════════════════════════
+
+class ConversationMemory {
+  constructor() {
+    this.topics = {};
+    this.unansweredQuestions = [];
+    this.salesPromises = [];
+    this.emotionalPeaks = [];
+    this.keyPoints = [];
+  }
+
+  trackTopic(topic, depth) {
+    if (!this.topics[topic]) this.topics[topic] = 0;
+    this.topics[topic] += depth || 1;
+  }
+
+  addQuestion(question) {
+    this.unansweredQuestions.push({ question, askedAt: Date.now() });
+  }
+
+  markQuestionAnswered() {
+    if (this.unansweredQuestions.length > 0) {
+      this.unansweredQuestions.shift();
+    }
+  }
+
+  addPromise(promise) {
+    this.salesPromises.push({ promise, madeAt: Date.now() });
+  }
+
+  addEmotionalPeak(emotion, intensity) {
+    this.emotionalPeaks.push({ emotion, intensity, at: Date.now() });
+  }
+
+  getPendingQuestions() {
+    return this.unansweredQuestions;
+  }
+
+  getSummary() {
+    return {
+      topicCount: Object.keys(this.topics).length,
+      pendingQuestions: this.unansweredQuestions.length,
+      promises: this.salesPromises.length,
+      emotionalEvents: this.emotionalPeaks.length,
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  消息分析器
+// ═══════════════════════════════════════════════════════
+
+function analyzeMessage(msg) {
+  const lower = msg.toLowerCase();
+
+  return {
+    length: msg.length,
+    sentenceCount: (msg.match(/[。！？.!?\n]/g) || []).length + 1,
+
+    // 沟通风格
+    hasGreeting: /你好|您好|hi\b|hello|早上好|下午好|晚上好/i.test(msg),
+    hasSelfIntro: /我是|我叫|我们公司|我们团队|跨洋狮|金讯博/i.test(msg),
+    hasQuestion: /[？?]/.test(msg) || /什么|怎么|如何|能不能|可以吗|行吗|方便吗/.test(msg),
+    hasPolite: /您|请|谢谢|麻烦|方便|打扰|不好意思/i.test(msg),
+    hasEmpathy: /理解|明白|确实|知道|感受|不容易|我懂|我明白|你说得对/i.test(msg),
+    hasHumor: /哈哈|笑|有趣|好玩/i.test(msg),
+
+    // 内容特征
+    hasPrice: /2980|688|价格|费用|收费|多少钱|便宜|贵|预算|成本|投资|元|块/i.test(msg),
+    hasProduct: /WordPress|SaaS|建站|网站|独立站|官网|网页/i.test(msg),
+    hasCase: /案例|客户|同行|之前|做过|成功|例子|比如|举例/i.test(msg),
+    hasData: /数据|数字|百分之|\d+%|\d+个|\d+家|\d+万/i.test(msg),
+    hasValue: /价值|回报|收益|效果|增长|好处|优势|提升|帮助/i.test(msg),
+    hasSolution: /方案|解决|办法|建议|推荐|适合|可以这样|我们可以/i.test(msg),
+    hasUrgency: /限时|名额|排期|优惠|错过|抓紧|马上|赶紧|现在/i.test(msg),
+    hasClose: /合同|付款|成交|确定|定了|锁定|签约|下单|开始做/i.test(msg),
+    hasNextStep: /明天|下次|联系|微信|加我|发你|发您|约|见面|聊/i.test(msg),
+    hasComparison: /对比|比较|区别|差别|vs|和.*比|阿里|淘宝|shopify/i.test(msg),
+    hasGuarantee: /保障|保证|合同|退款|售后|放心|承诺|包/i.test(msg),
+    hasTechnical: /SEO|域名|服务器|插件|代码|HTML|CSS|PHP|SSL|备案/i.test(msg),
+    hasEmotion: /担心|怕|焦虑|着急|纠结|犹豫|烦|头疼/i.test(msg),
+
+    // 负面特征
+    isTooShort: msg.length < 12,
+    isTooLong: msg.length > 400,
+    isPushy: /必须|一定|不买就|错过就|赶紧|现在就|立刻|马上定/i.test(msg),
+    isDismissive: /随便|无所谓|不重要|没关系|没事|算了/i.test(msg),
+    isDefensive: /不是|没有|你错了|不对|怎么可能/i.test(msg),
+    isRobotic: /尊敬的|您好.*很高兴|感谢您的|我们将竭诚/i.test(msg),
+
+    // 正面特征
+    isStructured: msg.length > 40 && /[，。；\n]/.test(msg) && (msg.match(/[，。；\n]/g) || []).length >= 2,
+    isSpecific: /\d+/.test(msg) && msg.length > 25,
+    hasStory: /之前|曾经|有一次|上次|那时候|当时/i.test(msg),
+    isProfessional: ['根据', '分析', '建议', '方案', '对比', '数据', '案例'].filter(w => msg.includes(w)).length >= 2,
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+//  客户状态机 — 核心决策引擎
+// ═══════════════════════════════════════════════════════
+
+class CustomerState {
+  constructor(personalityId, scenarioId, difficulty) {
+    const p = PERSONALITIES[personalityId];
+    this.personality = p;
+    this.scenarioId = scenarioId;
+    this.difficulty = difficulty;
+
+    this.trust = p.baseTrust;
+    this.intent = p.baseIntent;
+    this.comfort = 50;
+    this.interest = 35;
+    this.urgency = 15;
+
+    this.phaseIndex = 0;
+    this.isWarmingUp = false;
+    this.isAnnoyed = false;
+    this.isConvinced = false;
+    this.isAboutToLeave = false;
+
+    this.timesPriceMentioned = 0;
+    this.timesCaseRequested = 0;
+    this.timesDodged = 0;
+    this.timesPressured = 0;
+    this.roundsSinceLastValue = 0;
+
+    this.memory = new ConversationMemory();
+  }
+
+  getCurrentPhase(roundIndex) {
+    const scenario = SCENARIOS[this.scenarioId];
+    if (!scenario) return { name: '未知', description: '' };
+    for (const phase of scenario.phases) {
+      if (phase.rounds.includes(roundIndex)) return phase;
+    }
+    return scenario.phases[scenario.phases.length - 1] || { name: '尾声', description: '' };
+  }
+
+  processMessage(msg, analysis, roundIndex, historyMsgs) {
+    const phase = this.getCurrentPhase(roundIndex);
+    const p = this.personality;
+
+    let trustDelta = 0;
+    let intentDelta = 0;
+    let comfortDelta = 0;
+    let interestDelta = 0;
+
+    // ──── 信任变化 ────
+    if (analysis.hasEmpathy) trustDelta += 7;
+    if (analysis.isProfessional) trustDelta += 5;
+    if (analysis.hasCase || analysis.hasData) trustDelta += 6;
+    if (analysis.hasGuarantee) trustDelta += 4;
+    if (analysis.hasSelfIntro && roundIndex === 0) trustDelta += 5;
+    if (analysis.hasPolite) trustDelta += 2;
+    if (analysis.isSpecific) trustDelta += 3;
+    if (analysis.hasStory) trustDelta += 4;
+
+    if (analysis.isRobotic) trustDelta -= 8;
+    if (analysis.isPushy) trustDelta -= 12;
+    if (analysis.isDismissive) trustDelta -= 6;
+    if (analysis.isTooShort && roundIndex > 0) trustDelta -= 7;
+    if (analysis.isDefensive) trustDelta -= 5;
+    this.timesDodged += analysis.isDefensive ? 1 : 0;
+    if (this.timesDodged >= 2) trustDelta -= 4;
+
+    // ──── 购买意愿变化 ────
+    if (analysis.hasValue && !analysis.isPushy) intentDelta += 8;
+    if (analysis.hasCase) intentDelta += 7;
+    if (analysis.hasSolution) intentDelta += 6;
+    if (analysis.hasComparison) intentDelta += 5;
+    if (analysis.hasData) intentDelta += 6;
+    if (analysis.hasGuarantee) intentDelta += 5;
+    if (analysis.hasClose && this.trust >= 50) intentDelta += 8;
+    if (analysis.hasNextStep) intentDelta += 3;
+
+    if (analysis.isPushy) intentDelta -= 10;
+    if (analysis.isRobotic) intentDelta -= 6;
+    if (analysis.isTooShort) intentDelta -= 5;
+    if (this.timesPressured >= 2) intentDelta -= 4;
+    this.timesPressured += analysis.isPushy ? 1 : 0;
+
+    // ──── 舒适度变化 ────
+    if (analysis.hasHumor) comfortDelta += 8;
+    if (analysis.hasEmpathy) comfortDelta += 6;
+    if (analysis.hasPolite) comfortDelta += 3;
+    if (analysis.isTooLong) comfortDelta -= 3;
+    if (analysis.isPushy) comfortDelta -= 10;
+    if (analysis.isRobotic) comfortDelta -= 8;
+
+    // ──── 兴趣度变化 ────
+    if (analysis.hasStory) interestDelta += 6;
+    if (analysis.hasCase) interestDelta += 5;
+    if (analysis.hasData) interestDelta += 4;
+    if (analysis.hasQuestion) interestDelta += 3;
+    this.roundsSinceLastValue = (analysis.hasValue || analysis.hasCase || analysis.hasData) ? 0 : this.roundsSinceLastValue + 1;
+    if (this.roundsSinceLastValue >= 3) interestDelta -= 5;
+
+    // ──── 客户类型修正 ────
+    switch (p.id) {
+      case 'price':
+        if (/性价比|投入产出|算.*账|划算|长期.*省|一次.*终身/i.test(msg)) {
+          trustDelta += 4; intentDelta += 5;
+        }
+        if (/便宜|降价|打折|优惠|砍价|便宜点/i.test(msg) && !/价值|服务|质量|保障/i.test(msg)) {
+          intentDelta -= 2;
+        }
+        this.timesPriceMentioned += analysis.hasPrice ? 1 : 0;
+        if (this.timesPriceMentioned > 3 && !analysis.hasValue) {
+          trustDelta -= 3;
+        }
+        break;
+
+      case 'cognition':
+        if (/简单|容易|比如|举例|像.*一样|类比|打个比方|大白话/i.test(msg)) {
+          trustDelta += 5; intentDelta += 6; comfortDelta += 4;
+        }
+        if (analysis.hasTechnical) {
+          trustDelta -= 4; comfortDelta -= 4; interestDelta -= 3;
+        }
+        if (analysis.hasStory || analysis.hasCase) {
+          interestDelta += 3;
+        }
+        break;
+
+      case 'decision':
+        if (/方案|资料|对比|打印|说服|合伙人|给他看|参考/i.test(msg)) {
+          trustDelta += 6; intentDelta += 5; comfortDelta += 3;
+        }
+        if (/马上|立刻|赶紧|今天就|不用商量|你自己定/i.test(msg)) {
+          trustDelta -= 6; comfortDelta -= 5;
+        }
+        if (analysis.hasNextStep && /方案|资料|文档|PPT/i.test(msg)) {
+          intentDelta += 4;
+        }
+        break;
+
+      case 'silent':
+        if (/方便|简短|不打扰|有空|随时|你忙|不着急/i.test(msg)) {
+          trustDelta += 6; comfortDelta += 4;
+        }
+        if (msg.length > 250) {
+          trustDelta -= 2; comfortDelta -= 3;
+        }
+        if (analysis.hasStory) {
+          interestDelta += 4;
+        }
+        break;
+    }
+
+    // ──── 难度修正 ────
+    const diffMod = { easy: 1.3, medium: 1.0, hard: 0.65 };
+    const mod = diffMod[this.difficulty] || 1;
+    trustDelta = Math.round(trustDelta * mod);
+    intentDelta = Math.round(intentDelta * mod);
+    comfortDelta = Math.round(comfortDelta * mod);
+    interestDelta = Math.round(interestDelta * mod);
+
+    if (roundIndex > 3 && trustDelta >= 0) trustDelta += 2;
+    if (this.comfort > 60 && trustDelta >= 0) trustDelta += 1;
+
+    this.trust = clamp(this.trust + trustDelta, 0, 100);
+    this.intent = clamp(this.intent + intentDelta, 0, 100);
+    this.comfort = clamp(this.comfort + comfortDelta, 0, 100);
+    this.interest = clamp(this.interest + interestDelta, 0, 100);
+
+    this.isWarmingUp = this.comfort > 55 && this.trust > 35;
+    this.isAnnoyed = this.comfort < 25 || this.timesPressured >= 3;
+    this.isConvinced = this.trust > 60 && this.intent > 55;
+    this.isAboutToLeave = this.interest < 15 || this.comfort < 15;
+
+    if (analysis.hasPrice) this.memory.trackTopic('价格', 2);
+    if (analysis.hasProduct) this.memory.trackTopic('产品', 1);
+    if (analysis.hasCase) this.memory.trackTopic('案例', 1);
+    if (analysis.hasValue) this.memory.trackTopic('价值', 2);
+    if (analysis.hasGuarantee) this.memory.trackTopic('保障', 1);
+    if (analysis.hasTechnical) this.memory.trackTopic('技术', 1);
+    if (analysis.hasComparison) this.memory.trackTopic('对比', 1);
+
+    return {
+      trustDelta, intentDelta, comfortDelta, interestDelta,
+      trust: this.trust, intent: this.intent,
+      comfort: this.comfort, interest: this.interest,
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  回复生成器
+// ═══════════════════════════════════════════════════════
+
+async function generateResponse(salesMsg, scenarioId, customerType, roundIndex, historyMsgs, difficulty) {
+  const p = PERSONALITIES[customerType];
+
+  // ── 尝试 LLM ──
+  try {
+    const llmReply = await llmClient.generateCustomerReply(salesMsg, {
+      scenarioId,
+      customerType,
+      roundIndex,
+      historyMsgs,
+      difficulty,
+      state: null,
+    });
+    if (llmReply) {
+      return llmReply;
+    }
+  } catch (e) {
+    console.log('[customer-ai] LLM 不可用，降级到规则引擎');
+  }
+
+  // ── Fallback: 规则引擎 ──
+  const analysis = analyzeMessage(salesMsg);
+  const phase = getPhase(scenarioId, roundIndex);
+
+  let moodCategory = 'neutral';
+
+  if (analysis.isPushy) moodCategory = 'annoyed';
+  else if (analysis.isRobotic) moodCategory = 'skeptical';
+  else if (analysis.isTooShort && roundIndex > 0) moodCategory = 'annoyed';
+  else if (analysis.hasEmpathy && analysis.isProfessional) moodCategory = 'positive';
+  else if (analysis.hasStory || (analysis.hasCase && analysis.hasData)) moodCategory = 'positive';
+  else if (analysis.hasValue && !analysis.isPushy) moodCategory = 'positive';
+  else if (p.id === 'silent') moodCategory = 'cold';
+  else if (roundIndex === 0 && !analysis.hasSelfIntro) moodCategory = 'skeptical';
+
+  const strategy = selectStrategy(moodCategory, p, analysis, roundIndex, historyMsgs, phase);
+  return buildResponse(strategy, p, analysis, phase, historyMsgs, difficulty);
+}
+
+function getPhase(scenarioId, roundIndex) {
+  const s = SCENARIOS[scenarioId];
+  if (!s) return { name: '对话中', description: '' };
+  for (const phase of s.phases) {
+    if (phase.rounds.includes(roundIndex)) return phase;
+  }
+  return s.phases[s.phases.length - 1] || { name: '对话中', description: '' };
+}
+
+function selectStrategy(mood, personality, analysis, roundIndex, history, phase) {
+  const p = personality;
+
+  if (roundIndex === 0) {
+    return { type: 'opening', mood: 'neutral', priority: 'respond_to_sales' };
+  }
+
+  switch (mood) {
+    case 'positive':
+      return selectPositiveStrategy(p, analysis, phase, history);
+    case 'skeptical':
+      return selectSkepticalStrategy(p, analysis, phase);
+    case 'annoyed':
+      return selectAnnoyedStrategy(p, analysis, phase);
+    case 'cold':
+      return selectColdStrategy(p, analysis, phase);
+    default:
+      return selectNeutralStrategy(p, analysis, phase, history);
+  }
+}
+
+function selectPositiveStrategy(p, analysis, phase) {
+  const strategies = [];
+  if (analysis.hasCase && !analysis.hasClose) {
+    strategies.push({ type: 'ask_for_more_cases', weight: 4 });
+  }
+  if (analysis.hasSolution) {
+    strategies.push({ type: 'ask_implementation_details', weight: 3 });
+  }
+  if (analysis.hasValue && !analysis.hasPrice) {
+    strategies.push({ type: 'show_interest_in_value', weight: 3 });
+  }
+  if (analysis.hasNextStep) {
+    strategies.push({ type: 'agree_to_next_step', weight: 4 });
+  }
+  if (analysis.hasClose && phase.name === '决定时刻') {
+    strategies.push({ type: 'ready_to_close', weight: 5 });
+  }
+  if (analysis.hasEmpathy && analysis.isProfessional) {
+    strategies.push({ type: 'express_appreciation', weight: 3 });
+  }
+  strategies.push({ type: 'warm_continuation', weight: 2 });
+  return weightedPick(strategies);
+}
+
+function selectSkepticalStrategy(p, analysis, phase) {
+  const strategies = [];
+  if (analysis.hasPrice && !analysis.hasValue) {
+    strategies.push({ type: 'challenge_price', weight: 5 });
+  }
+  if (analysis.hasTechnical) {
+    strategies.push({ type: 'confused_by_tech', weight: 3 });
+  }
+  if (p.id === 'price' && !analysis.hasComparison) {
+    strategies.push({ type: 'compare_with_cheaper', weight: 4 });
+  }
+  if (p.id === 'cognition' && !analysis.hasCase) {
+    strategies.push({ type: 'doubt_effectiveness', weight: 4 });
+  }
+  if (p.id === 'decision' && !analysis.hasNextStep) {
+    strategies.push({ type: 'mention_partner_block', weight: 4 });
+  }
+  strategies.push({ type: 'express_doubt', weight: 2 });
+  return weightedPick(strategies);
+}
+
+function selectAnnoyedStrategy(p, analysis, phase) {
+  return {
+    type: 'push_back',
+    sub: analysis.isPushy ? 'too_pushy' : analysis.isRobotic ? 'too_robotic' : 'general_annoyance',
+  };
+}
+
+function selectColdStrategy(p, analysis, phase) {
+  if (analysis.hasQuestion) return { type: 'brief_answer', weight: 1 };
+  if (analysis.hasStory || analysis.hasCase) return { type: 'slight_interest', weight: 1 };
+  return { type: 'minimal_ack', weight: 1 };
+}
+
+function selectNeutralStrategy(p, analysis, phase, history) {
+  const strategies = [];
+  if (analysis.hasQuestion && !analysis.hasSolution) {
+    strategies.push({ type: 'waiting_for_answer', weight: 3 });
+  }
+  if (phase.name === '试探' || phase.name === '现状探询') {
+    strategies.push({ type: 'share_current_situation', weight: 3 });
+  }
+  if (p.id === 'price') {
+    strategies.push({ type: 'mention_budget_concern', weight: 2 });
+  }
+  strategies.push({ type: 'neutral_continuation', weight: 1 });
+  return weightedPick(strategies);
+}
+
+function weightedPick(items) {
+  const total = items.reduce((s, i) => s + (i.weight || 1), 0);
+  let rand = Math.random() * total;
+  for (const item of items) {
+    rand -= (item.weight || 1);
+    if (rand <= 0) return item;
+  }
+  return items[0];
+}
+
+function buildResponse(strategy, p, analysis, phase, history, difficulty) {
+  const candidates = getCandidates(strategy, p, analysis, phase, difficulty);
+  const historyTexts = new Set(history.map(h => h.content));
+  const fresh = candidates.filter(c => !historyTexts.has(c));
+  const pool = fresh.length > 0 ? fresh : candidates;
+  const response = pool[Math.floor(Math.random() * pool.length)];
+  return postProcess(response, p, analysis);
+}
+
+function getCandidates(strategy, p, analysis, phase, difficulty) {
+  const type = strategy.type;
+
+  const all = {
+    'ask_for_more_cases': [
+      '这个案例听起来不错，他们具体做什么产品的？做了之后询盘量大概涨了多少？',
+      '有意思。你刚才说的这个客户，他大概用了多久看到效果的？我比较关心时间周期。',
+      '嗯，这个例子挺好的。那有没有跟我情况更接近的？比如也是刚起步做外贸的那种。',
+      '案例我听到了，但我想知道更具体的——比如第一个月来了多少询盘，成交了几个？',
+    ],
+    'ask_implementation_details': [
+      '听起来方案是现成的。那从我开始说要做到网站上线，大概需要多长时间？',
+      '明白了。那具体怎么操作呢？我需要准备什么东西？比如产品图片、公司介绍这些？',
+      '嗯，流程我听懂了。那我中间需要参与多少？还是你们大部分都能帮我搞定？',
+      '这个流程比我想象的简单。那我最关心的是——做完之后我自己能改吗？比如以后加新产品什么的。',
+    ],
+    'show_interest_in_value': [
+      '你说的这个点我倒是没想到。确实，独立站是自己的，不像平台还要被抽佣金。',
+      '嗯...你这么说我有点理解了。长期来看确实比一直投广告划算。',
+      '这个角度有意思。我之前一直想着怎么省钱，没想过怎么赚钱。',
+    ],
+    'agree_to_next_step': [
+      '行，那你把详细方案发我微信上吧，我晚上回去仔细看看。',
+      '可以，明天下午我有空，到时候再详细聊一下具体的。',
+      '好的，你先发过来。我这两天看一下，有什么不懂的再问你。',
+      '行，微信上聊也行。你发吧，我看到就回。',
+    ],
+    'ready_to_close': [
+      '行吧，我认真考虑了一下，觉得确实应该做。你说怎么开始吧。',
+      '我基本想通了。之前犹豫主要是因为不了解，现在聊下来感觉你们还是挺靠谱的。怎么走流程？',
+      '好的，我决定了。2980就2980吧，关键是你能帮我把网站做好。具体怎么操作？',
+    ],
+    'express_appreciation': [
+      '你分析得挺专业的。说实话我之前也咨询过几家，但没你说得这么清楚。',
+      '嗯，你确实说到点子上了。我感觉你是真的在帮我分析问题，不是在推销。',
+      '跟你聊天挺舒服的，不会一直催着让我定。这一点我觉得很好。',
+    ],
+    'warm_continuation': [
+      '嗯，你说得对。那接下来你觉得我应该从哪一步开始？',
+      '明白了。你这么一解释我就清楚了。那我们继续聊聊具体方案？',
+      '好，我感觉思路清晰多了。你接着说，我在听。',
+    ],
+    'challenge_price': [
+      '你说的是有道理，但2980毕竟是2980。我淘宝上搜了一下，建站500块的一大把。你说说看，差在哪？',
+      '我不是说你们不好，但这个价格确实超出我预期了。我本来以为几百块就能搞定的。',
+      '说实话吧，我打听了一圈，有的人说独立站几千，有的人说几百。我就想知道到底值不值这个钱。',
+      '你说的这些功能，便宜的建站公司也能做吧？为什么你们要贵这么多？',
+    ],
+    'compare_with_cheaper': [
+      '我在淘宝上看了一下，500块钱就能做个网站，模板也挺好看的。你们这个2980跟淘宝500的到底有什么区别？',
+      '我朋友在Shopify上自己搭了一个，一个月也就几百块。你们这个一次性2980，我算了一下好像也没便宜多少。',
+      '说实话，阿里国际站一年也就几万块，流量还稳定。你们这个独立站2980建好了，流量从哪来？',
+    ],
+    'confused_by_tech': [
+      '等等，你说域名、服务器这些...我完全不懂啊。这些是你们帮我弄还是我自己去搞？',
+      '你说了一大堆专业的东西，我听着有点懵。能不能就用大白话说——我付了2980，能拿到什么？',
+      '这些技术的东西我真的不太懂。我就想知道，做完之后我能不能自己操作？还是每次改东西都要找你们？',
+    ],
+    'doubt_effectiveness': [
+      '网站建好了我知道，但问题是我怎么让人看到呢？总不能建好了放那等着吧。',
+      '我比较担心的是——花了钱建了站，结果没人来看，那不就白费了吗？',
+      '你说独立站能带来客户，但具体是怎么带来的？我现在的客户都是老客户介绍的，独立站真的能开发新客户吗？',
+    ],
+    'mention_partner_block': [
+      '我自己是觉得可以的。但你也知道，我合伙人那边...他对花钱这种事特别谨慎。你有什么东西能让我拿去给他看吗？',
+      '问题不在我这，在我合伙人那。他说现在渠道够用了，没必要折腾。我怎么说他都不太信。',
+      '我回去跟他说了，他就一句话——"能保证效果吗？"我说保证不了，他就说那再看看吧。',
+    ],
+    'express_doubt': [
+      '嗯...你说的这些听起来都不错，但我还是有点不确定。毕竟不是小钱。',
+      '我明白你的意思，但我还是想再考虑考虑。这种事不能太草率。',
+      '你说的我都听到了。但说实话，我还是需要时间消化一下。',
+    ],
+    'push_back': [
+      '哎你别催我啊。这么大的事我总得想清楚吧？你越催我越不敢定。',
+      '你这样催我反而让我有点不舒服。我是真心想了解，但你一直催着让我定...',
+      '你先别急着让我交钱，我还没完全搞清楚呢。等我搞明白了自然会定。',
+      '你这话说得...怎么跟念稿子似的。能不能说人话？',
+      '你不用跟我讲这些套话，我听了太多了。你就实实在在地说，你们能帮我做什么。',
+      '我觉得你根本没在听我说什么，就一直在说你们的产品多好。',
+      '算了，今天先聊到这吧。我有点事，回头再说。',
+    ],
+    'minimal_ack': [
+      '嗯。',
+      '哦。',
+      '行。',
+      '好，知道了。',
+      '嗯。',
+    ],
+    'brief_answer': [
+      '还行吧。',
+      '差不多。',
+      '就那样。',
+      '可以用。',
+    ],
+    'slight_interest': [
+      '这个倒是有点意思。',
+      '嗯...你说。',
+      '然后呢？',
+    ],
+    'waiting_for_answer': [
+      '��，我刚才问的那个问题你还没回答呢。',
+      '你说的这些我听到了，但我更想知道我刚才问的那个...',
+      '你先回答我之前的疑问吧，那个比较关键。',
+    ],
+    'share_current_situation': [
+      '我现在主要靠阿里国际站，一年投了十几万吧，效果一般般。所以想看看独立站能不能多条路。',
+      '我们公司现在外贸主要靠展会和老客户，新客户开发挺难的。独立站是听朋友说的，来了解一下。',
+      '目前的情况就是——有产品、有供应链，但获客渠道太单一了。阿里国际站竞争太大，小公司根本排不上去。',
+    ],
+    'mention_budget_concern': [
+      '你说的是挺好的，但我做生意这么多年，每一笔钱都得算清楚。2980说多不多，但也不是小数目。',
+      '我理解独立站有价值，但我现在的预算是有限的。如果能便宜点或者分期，我会更放心。',
+    ],
+    'neutral_continuation': [
+      '嗯，你接着说，我在听。',
+      '好的，我大概明白了。还有什么？',
+      '嗯，这个我知道了。还有其他方面吗？',
+    ],
+  };
+
+  return all[type] || all['neutral_continuation'];
+}
+
+function postProcess(response, p, analysis) {
+  let text = response;
+
+  if (p.id === 'price') {
+    if (Math.random() < 0.3 && !text.startsWith('说实话')) {
+      text = '说实话，' + text.charAt(0).toLowerCase() + text.slice(1);
+    }
+    if (Math.random() < 0.2) {
+      text = text.replace(/\.$/, '，关键是得值这个钱。');
+    }
+  }
+
+  if (p.id === 'cognition') {
+    if (Math.random() < 0.3 && !text.includes('不太懂')) {
+      text = text.replace(/\.$/, '，不过有些地方我还不太懂。');
+    }
+  }
+
+  if (p.id === 'decision') {
+    if (Math.random() < 0.35 && !text.includes('合伙人')) {
+      text = text.replace(/\.$/, '，不过还得跟合伙人商量一下。');
+    }
+  }
+
+  if (p.id === 'silent') {
+    if (text.length > 30 && Math.random() < 0.6) {
+      const sentences = text.split(/[。！？]/).filter(s => s.trim());
+      text = sentences[0] + '。';
+    }
+  }
+
+  return text;
+}
+
+// ═══════════════════════════════════════════════════════
+//  导出接口
+// ═══════════════════════════════════════════════════════
+
+function getOpeningMessage(scenarioId, customerType) {
+  const openings = OPENINGS[scenarioId]?.[customerType];
+  if (!openings || openings.length === 0) return '你好，请开始吧。';
+  return openings[Math.floor(Math.random() * openings.length)];
+}
+
+function getScenarioContext(scenarioId, customerType) {
+  const s = SCENARIOS[scenarioId];
+  const p = PERSONALITIES[customerType];
+  if (!s || !p) return { title: '未知', persona: '', customerName: '客户', customerType: '', baseTrust: 25, baseIntent: 20 };
+
+  const names = {
+    'first-call': '张总', 'spin': '李总', 'objection': '王总',
+    'closing': '赵总', 'followup': '陈总',
+  };
+
+  return {
+    title: s.title,
+    persona: s.context,
+    customerName: names[scenarioId] || '客户',
+    customerType: p.name,
+    baseTrust: p.baseTrust,
+    baseIntent: p.baseIntent,
+  };
+}
+
+function calculateMetrics(msg, scenarioId, customerType, roundIndex, difficulty) {
+  const analysis = analyzeMessage(msg);
+  const p = PERSONALITIES[customerType];
+  if (!p) return { trustDelta: 0, intentDelta: 0 };
+
+  const state = new CustomerState(customerType, scenarioId, difficulty);
+  const history = [];
+  const result = state.processMessage(msg, analysis, roundIndex, history);
+
+  return {
+    trustDelta: result.trustDelta,
+    intentDelta: result.intentDelta,
+  };
+}
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+// module.exports removed (browser mode)
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ *  跨洋狮 智能评分引擎 v3
+ * ═══════════════════════════════════════════════════════════
+ *
+ * 评分维度（5维度，更科学）：
+ *   1. 专业度 (20%) — 是否准确传递了产品和公司信息
+ *   2. 策略匹配 (25%) — 话术是否匹配客户类型和对话阶段
+ *   3. 沟通质量 (20%) — 语言的自然度、共情、礼貌
+ *   4. 结构完整性 (20%) — 话术是否有清晰的逻辑结构
+ *   5. 推进有效性 (15%) — 是否有效推进了销售进程
+ */
+
+// using global analyzeMessage// ── 场景评分标准 ──
+const SCENARIO_CRITERIA = {
+  'first-call': {
+    keywords: ['跨洋狮', '独立站', '建站', 'WordPress', 'SaaS', '2980', '688', '一次性', '终身', '金讯博', '7年', '200人', '外贸'],
+    structure: ['自我介绍', '价值传递', '需求探询', '下一步约定'],
+    forbidden: ['便宜货', '垃圾', '骗', '忽悠'],
+    goodPatterns: ['问开放式问题', '简短有力', '留下悬念'],
+  },
+  'spin': {
+    keywords: ['现状', '困难', '影响', '解决', '渠道', '客户', '询盘', '转化', '案例', '效果', '利润', '痛点'],
+    structure: ['现状确认', '难点挖掘', '影响放大', '方案引出'],
+    forbidden: ['肯定行', '保证', '100%', '绝对'],
+    goodPatterns: ['用数据说话', '问具体数字', '引导客户自己说'],
+  },
+  'objection': {
+    keywords: ['理解', '价值', '案例', '对比', '服务', '售后', '保障', '合同', '金讯博', '7年', '200人', '同行'],
+    structure: ['顾虑认同', '价值说明', '证据支撑', '风险化解', '行动引导'],
+    forbidden: ['你错了', '不对', '不懂', '你理解错了'],
+    goodPatterns: ['先认同再引导', '用案例回应质疑', '把顾虑正常化'],
+  },
+  'closing': {
+    keywords: ['排期', '名额', '优惠', '锁定', '合同', '付款', '服务', '上线', '对接', '保障'],
+    structure: ['紧迫感营造', '价值重申', '异议消除', '成交引导', '后续铺垫'],
+    forbidden: ['随便', '无所谓', '不急', '再等等'],
+    goodPatterns: ['制造稀缺感', '降低决策门槛', '给出下一步明确指令'],
+  },
+  'followup': {
+    keywords: ['案例', '同行', '效果', '简单', '方案', '对比', '了解', '帮助', '新', '最近'],
+    structure: ['关系重建', '新价值提供', '状态探询', '低门槛引导', '时间锁定'],
+    forbidden: ['怎么还不', '你到底', '快点', '还没决定'],
+    goodPatterns: ['提供新信息', '轻松自然', '尊重客户节奏'],
+  },
+};
+
+// ── 评分主函数 ──
+function scoreResponse(salesMsg, scenarioId, customerType, roundIndex, conversationHistory) {
+  const criteria = SCENARIO_CRITERIA[scenarioId];
+  if (!criteria) return { score: 50, feedback: '场景评分标准缺失', details: {} };
+
+  const analysis = analyzeMessage(salesMsg);
+  const personality = PERSONALITIES[customerType];
+  const phase = getPhaseForRound(scenarioId, roundIndex);
+
+  // ══ 5 维度评分 ══
+  const professionalism = scoreProfessionalism(salesMsg, analysis, criteria, 20);
+  const strategy = scoreStrategy(salesMsg, analysis, customerType, personality, roundIndex, phase, 25);
+  const communication = scoreCommunication(salesMsg, analysis, criteria, 20);
+  const structure = scoreStructure(salesMsg, analysis, criteria, roundIndex, 20);
+  const progression = scoreProgression(salesMsg, analysis, roundIndex, phase, conversationHistory, 15);
+
+  const totalScore = Math.round(professionalism + strategy + communication + structure + progression);
+
+  // 生成反馈
+  const feedback = generateFeedback(
+    totalScore, professionalism, strategy, communication, structure, progression,
+    analysis, criteria, personality, phase
+  );
+
+  return {
+    score: clamp(totalScore, 0, 100),
+    feedback,
+    details: {
+      professionalism: Math.round(professionalism),
+      strategy: Math.round(strategy),
+      communication: Math.round(communication),
+      structure: Math.round(structure),
+      progression: Math.round(progression),
+    },
+  };
+}
+
+// ══ 维度1：专业度 (20分) ══
+function scoreProfessionalism(msg, analysis, criteria, maxPoints) {
+  let score = maxPoints * 0.3; // 基础分
+
+  // 关键词覆盖
+  let kwMatched = 0;
+  for (const kw of criteria.keywords) {
+    if (msg.includes(kw)) kwMatched++;
+  }
+  const kwRatio = kwMatched / Math.min(criteria.keywords.length, 10);
+  score += kwRatio * maxPoints * 0.35;
+
+  // 专业性判断
+  if (analysis.isProfessional) score += maxPoints * 0.15;
+  if (analysis.isSpecific) score += maxPoints * 0.1;
+  if (analysis.hasData) score += maxPoints * 0.1;
+
+  // 扣分
+  if (analysis.isRobotic) score -= maxPoints * 0.2;
+  if (analysis.isTooShort) score -= maxPoints * 0.15;
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 维度2：策略匹配 (25分) ══
+function scoreStrategy(msg, analysis, customerType, personality, roundIndex, phase, maxPoints) {
+  let score = maxPoints * 0.4;
+
+  // 客户类型匹配
+  switch (customerType) {
+    case 'price':
+      if (/性价比|投资回报|长期|划算|一次性.*终身|投入产出/i.test(msg)) score += maxPoints * 0.2;
+      if (/便宜|降价|打折|优惠|砍价/i.test(msg) && !/价值|服务|质量|保障/i.test(msg)) score -= maxPoints * 0.12;
+      if (analysis.hasValue && analysis.hasData) score += maxPoints * 0.1;
+      break;
+    case 'cognition':
+      if (/简单|容易|比如|举例|打个比方|大白话|操作/i.test(msg)) score += maxPoints * 0.2;
+      if (analysis.hasTechnical) score -= maxPoints * 0.12;
+      if (analysis.hasStory || analysis.hasCase) score += maxPoints * 0.1;
+      break;
+    case 'decision':
+      if (/方案|资料|对比|打印|合伙人|给他看|参考|说服/i.test(msg)) score += maxPoints * 0.2;
+      if (/马上|立刻|赶紧|今天就|不用商量/i.test(msg)) score -= maxPoints * 0.15;
+      if (analysis.hasNextStep && /资料|方案|文档/i.test(msg)) score += maxPoints * 0.1;
+      break;
+    case 'silent':
+      if (/方便|简短|不打扰|有空|随时|你忙|不着急/i.test(msg)) score += maxPoints * 0.2;
+      if (msg.length > 200) score -= maxPoints * 0.1;
+      if (analysis.hasStory) score += maxPoints * 0.1;
+      break;
+  }
+
+  // 阶段匹配
+  if (phase) {
+    switch (phase.name) {
+      case '戒备':
+        if (analysis.hasSelfIntro && analysis.hasGreeting) score += maxPoints * 0.08;
+        if (analysis.isPushy) score -= maxPoints * 0.2;
+        break;
+      case '试探':
+      case '现状探询':
+        if (analysis.hasQuestion) score += maxPoints * 0.08;
+        break;
+      case '决定时刻':
+        if (analysis.hasClose || analysis.hasGuarantee) score += maxPoints * 0.1;
+        if (analysis.isDismissive) score -= maxPoints * 0.15;
+        break;
+    }
+  }
+
+  // 轮次策略
+  if (roundIndex === 0 && !analysis.hasSelfIntro) score -= maxPoints * 0.1;
+  if (roundIndex > 2 && !analysis.hasNextStep && !analysis.hasClose) score -= maxPoints * 0.05;
+
+  // 负面策略
+  if (analysis.isPushy) score -= maxPoints * 0.25;
+  if (analysis.isDefensive) score -= maxPoints * 0.1;
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ═��� 维度3：沟通质量 (20分) ══
+function scoreCommunication(msg, analysis, criteria, maxPoints) {
+  let score = maxPoints * 0.35;
+
+  // 加分项
+  if (analysis.hasPolite) score += maxPoints * 0.12;
+  if (analysis.hasEmpathy) score += maxPoints * 0.15;
+  if (analysis.hasHumor) score += maxPoints * 0.08;
+  if (analysis.isStructured) score += maxPoints * 0.1;
+  if (analysis.hasQuestion) score += maxPoints * 0.08;
+  if (analysis.hasStory) score += maxPoints * 0.07;
+
+  // 扣分项
+  if (analysis.isTooShort) score -= maxPoints * 0.25;
+  if (analysis.isRobotic) score -= maxPoints * 0.2;
+  if (analysis.isPushy) score -= maxPoints * 0.15;
+  if (analysis.isDismissive) score -= maxPoints * 0.1;
+  if (analysis.isDefensive) score -= maxPoints * 0.08;
+
+  // 禁用词检查
+  for (const word of criteria.forbidden) {
+    if (msg.includes(word)) score -= maxPoints * 0.2;
+  }
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 维度4：结构完整性 (20分) ══
+function scoreStructure(msg, analysis, criteria, roundIndex, maxPoints) {
+  let score = 0;
+  const elements = criteria.structure;
+  const perElement = maxPoints / elements.length;
+
+  const checks = {
+    '自我介绍': /我是|我叫|我们公司|我们团队|跨洋狮|金讯博/i,
+    '价值传递': /帮助|解决|提升|增长|获取|客户|询盘|独立站|价值|效果/i,
+    '需求探询': /[？?]|什么|怎么|如何|能不能|目前|现在/i,
+    '下一步约定': /加微信|发您|联系|明天|下次|沟通|约|聊/i,
+    '现状确认': /目前|现在|当前|渠道|方式|在用什么/i,
+    '难点挖掘': /困难|问题|挑战|困扰|痛点|怎么办|瓶颈/i,
+    '影响放大': /如果|长期|持续|越来越|错过|损失|风险|影响/i,
+    '方案引出': /方案|解决|帮助|建议|推荐|适合|可以这样/i,
+    '顾虑认同': /理解|明白|确实|正常|担心|顾虑|你说得对/i,
+    '价值说明': /价值|好处|收益|效果|回报|投资|优势/i,
+    '证据支撑': /案例|数据|客户|同行|证明|结果|做过/i,
+    '风险化解': /保障|合同|退款|售后|放心|保证|承诺/i,
+    '行动引导': /下一步|确认|安排|开始|启动|做|定/i,
+    '紧迫感营造': /时间|排期|名额|优惠|错过|等不了|限/i,
+    '价值重申': /价值|效果|收益|投资|回报|划算|值/i,
+    '异议消除': /理解|但是|其实|实际|案例|之前/i,
+    '成交引导': /合同|付款|确认|定了|锁定|开始|下单/i,
+    '后续铺垫': /服务|上线|运营|对接|后续|售后/i,
+    '关系重建': /上次|之前|最近|好久|还好|记得/i,
+    '新价值提供': /新|最近|刚|内容|资料|更新|案例/i,
+    '状态探询': /怎么样|如何|考虑|想法|进展|觉得/i,
+    '低门槛引导': /简单|方便|快速|不复杂|688|SaaS|先试/i,
+    '时间锁定': /周几|哪天|具体|时间|确认|约/i,
+  };
+
+  for (const elem of elements) {
+    if (checks[elem] && checks[elem].test(msg)) {
+      score += perElement;
+    }
+  }
+
+  // 结构化加分
+  if (analysis.isStructured) score += maxPoints * 0.1;
+  // 第一轮不需要完整结构
+  if (roundIndex === 0) score = Math.min(score * 1.2, maxPoints);
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 维度5：推进有效性 (15分) ══
+function scoreProgression(msg, analysis, roundIndex, phase, history, maxPoints) {
+  let score = maxPoints * 0.3;
+
+  // 是否在推动对话前进
+  if (analysis.hasNextStep) score += maxPoints * 0.25;
+  if (analysis.hasClose && roundIndex >= 2) score += maxPoints * 0.2;
+  if (analysis.hasQuestion) score += maxPoints * 0.15; // 提问 = 引导对话
+  if (analysis.hasSolution) score += maxPoints * 0.15;
+  if (analysis.hasGuarantee) score += maxPoints * 0.1;
+
+  // 停滞信号
+  if (analysis.isTooShort && roundIndex > 0) score -= maxPoints * 0.2;
+  if (analysis.isDismissive) score -= maxPoints * 0.2;
+  if (!analysis.hasQuestion && !analysis.hasNextStep && !analysis.hasClose && roundIndex > 1) {
+    score -= maxPoints * 0.1; // 没有推进动作
+  }
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 反馈生成 ══
+function generateFeedback(total, prof, strat, comm, struct, prog, analysis, criteria, personality, phase) {
+  const parts = [];
+
+  // 总体评价
+  if (total >= 85) {
+    parts.push('👍 非常出色！话术自然流畅，策略精准，客户体验极佳。');
+  } else if (total >= 70) {
+    parts.push('✅ 表现不错，基本合格。有几个细节可以再打磨一下。');
+  } else if (total >= 55) {
+    parts.push('⚠️ 中等水平，部分关键要素缺失或策略不够精准。');
+  } else if (total >= 40) {
+    parts.push('🔶 需要较大改进，话术存在明显短板。');
+  } else {
+    parts.push('❌ 表现不理想，建议重新审视策略和话术。');
+  }
+
+  // 各维度具体建议（按最差的维度优先）
+  const dims = [
+    { name: '专业度', score: prof, max: 20, tip: '💡 建议补充产品和公司关键信息，用数据支撑观点。' },
+    { name: '策略匹配', score: strat, max: 25, tip: '🎯 建议针对' + (personality?.name || '客户') + '调整话术风格和内容重点。' },
+    { name: '沟通质量', score: comm, max: 20, tip: '📝 建议增加共情表达，让语言更自然、更有人情味。' },
+    { name: '结构完整', score: struct, max: 20, tip: '🔧 话术结构不够完整，建议补充缺失的沟通要素。' },
+    { name: '推进有效', score: prog, max: 15, tip: '🚀 建议在结尾给出明确的下一步行动指引。' },
+  ];
+
+  dims.sort((a, b) => (a.score / a.max) - (b.score / b.max));
+
+  // 只提示最差的2个维度
+  for (const dim of dims.slice(0, 2)) {
+    if (dim.score / dim.max < 0.6) {
+      parts.push(dim.tip);
+    }
+  }
+
+  // 特殊提醒
+  if (analysis.isRobotic) {
+    parts.push('🤖 你的话术听起来像在念稿子，请用更自然的口语化表达。');
+  }
+  if (analysis.isPushy) {
+    parts.push('⚠️ 语气太急迫了！给客户施加过多压力会适得其反。');
+  }
+  if (analysis.isTooShort && total < 70) {
+    parts.push('📏 回复过短，无法充分展示专业性和价值，建议展开说明。');
+  }
+  if (!analysis.hasQuestion && total < 75) {
+    parts.push('💬 建议增加提问来引导对话，而不是单向输出信息。');
+  }
+  if (!analysis.hasEmpathy && total < 70) {
+    parts.push('🤝 缺少共情表达，客户可能觉得你不理解他的处境。');
+  }
+
+  return parts.join('\n');
+}
+
+// ── 辅助函数 ──
+function getPhaseForRound(scenarioId, roundIndex) {
+  const s = SCENARIOS[scenarioId];
+  if (!s?.phases) return null;
+  for (const phase of s.phases) {
+    if (phase.rounds.includes(roundIndex)) return phase;
+  }
+  return s.phases[s.phases.length - 1] || null;
+}
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+// module.exports removed (browser mode)
+
+// ═══════════════════════════════════════════════════════════════
+//  后端路由逻辑（浏览器内运行）
+// ═══════════════════════════════════════════════════════════════
+
+const customerStates = new Map();
+
+function getCustomerState(examId, scenarioId, customerType, difficulty) {
+  const key = examId + ':' + scenarioId;
+  if (!customerStates.has(key)) {
+    customerStates.set(key, new CustomerState(customerType, scenarioId, difficulty));
+  }
+  return customerStates.get(key);
+}
+
+function clearCustomerState(examId) {
+  for (const key of customerStates.keys()) {
+    if (key.startsWith(examId + ':')) customerStates.delete(key);
+  }
+}
+
+function getRandomCustomerType() {
+  const types = ['price', 'cognition', 'decision', 'silent'];
+  return types[Math.floor(Math.random() * types.length)];
+}
+
+function getMaxRounds(scenarioId, difficulty) {
+  const base = { 'first-call': 5, 'spin': 6, 'objection': 6, 'closing': 5, 'followup': 4 };
+  const mod = { easy: 1, medium: 0, hard: -1 };
+  return Math.max(3, (base[scenarioId] || 5) + (mod[difficulty] || 0));
+}
+
+async function apiExamStart(params) {
+  const { traineeName, scenarios, difficulty } = params;
+  const examId = generateUUID();
+  const now = new Date().toISOString();
+
+  dbRun('INSERT INTO exams (id, trainee_name, difficulty, scenarios, started_at, status) VALUES (?, ?, ?, ?, ?, ?)',
+    [examId, traineeName, difficulty, JSON.stringify(scenarios), now, 'in_progress']);
+
+  const firstScenarioId = scenarios[0];
+  const customerType = getRandomCustomerType();
+  const opening = getOpeningMessage(firstScenarioId, customerType);
+  const context = getScenarioContext(firstScenarioId, customerType);
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, 0, ?, ?)',
+    [examId, firstScenarioId, 'customer', opening]);
+
+  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, 0, ?, ?, 0, 0)',
+    [examId, firstScenarioId, context.baseTrust, context.baseIntent]);
+
+  return {
+    examId, currentScenario: firstScenarioId, customerType,
+    customerName: context.customerName, scenarioTitle: context.title,
+    scenarioPersona: context.persona, opening,
+    scenarioIndex: 0, totalScenarios: scenarios.length,
+    trust: context.baseTrust, intent: context.baseIntent,
+  };
+}
+
+async function apiExamMessage(params) {
+  const { examId, scenarioId, message, customerType, roundIndex } = params;
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  if (!exam) throw new Error('考核不存在');
+
+  const history = dbAll('SELECT role, content FROM exam_messages WHERE exam_id = ? AND scenario_id = ? ORDER BY id ASC',
+    [examId, scenarioId]);
+
+  const scoreResult = scoreResponse(message, scenarioId, customerType, roundIndex || 0, history);
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content, score, feedback) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [examId, scenarioId, roundIndex || 0, 'sales', message, scoreResult.score, scoreResult.feedback]);
+
+  const state = getCustomerState(examId, scenarioId, customerType, exam.difficulty);
+  const msgAnalysis = analyzeMessage(message);
+  const stateResult = state.processMessage(message, msgAnalysis, roundIndex || 0, history);
+
+  let customerMsg;
+  try {
+    const llmReply = await generateCustomerReplyLLM(message, {
+      scenarioId, customerType, roundIndex: roundIndex || 0, historyMsgs: history, difficulty: exam.difficulty, state: null
+    });
+    customerMsg = llmReply || generateResponseRules(message, scenarioId, customerType, roundIndex || 0, history, exam.difficulty);
+  } catch(e) {
+    customerMsg = generateResponseRules(message, scenarioId, customerType, roundIndex || 0, history, exam.difficulty);
+  }
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, ?, ?, ?)',
+    [examId, scenarioId, (roundIndex || 0) + 1, 'customer', customerMsg]);
+
+  const maxRounds = getMaxRounds(scenarioId, exam.difficulty);
+  const shouldEnd = (roundIndex || 0) + 1 >= maxRounds;
+
+  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [examId, scenarioId, roundIndex || 0, stateResult.trust, stateResult.intent, stateResult.trustDelta, stateResult.intentDelta]);
+
+  return {
+    customerMessage: customerMsg, score: scoreResult.score,
+    feedback: scoreResult.feedback, details: scoreResult.details,
+    roundIndex: (roundIndex || 0) + 1, maxRounds, scenarioComplete: shouldEnd,
+    trust: stateResult.trust, intent: stateResult.intent,
+    trustDelta: stateResult.trustDelta, intentDelta: stateResult.intentDelta,
+  };
+}
+
+async function apiExamNextScenario(params) {
+  const { examId, currentScenarioIndex } = params;
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  const scenarios = JSON.parse(exam.scenarios);
+  const nextIndex = (currentScenarioIndex || 0) + 1;
+  if (nextIndex >= scenarios.length) return { allComplete: true };
+
+  const nextScenarioId = scenarios[nextIndex];
+  const customerType = getRandomCustomerType();
+  const opening = getOpeningMessage(nextScenarioId, customerType);
+  const context = getScenarioContext(nextScenarioId, customerType);
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, 0, ?, ?)',
+    [examId, nextScenarioId, 'customer', opening]);
+  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, 0, ?, ?, 0, 0)',
+    [examId, nextScenarioId, context.baseTrust, context.baseIntent]);
+
+  const oldId = scenarios[currentScenarioIndex || 0];
+  if (oldId) customerStates.delete(examId + ':' + oldId);
+
+  return {
+    scenarioId: nextScenarioId, customerType,
+    customerName: context.customerName, scenarioTitle: context.title,
+    scenarioPersona: context.persona, opening,
+    scenarioIndex: nextIndex, totalScenarios: scenarios.length,
+    trust: context.baseTrust, intent: context.baseIntent,
+  };
+}
+
+// ══ 规则引擎 Fallback ══
+function generateResponseRules(salesMsg, scenarioId, customerType, roundIndex, historyMsgs, difficulty) {
+// ── Fallback: 规则引擎 ──
+  const analysis = analyzeMessage(salesMsg);
+  const phase = getPhase(scenarioId, roundIndex);
+
+  let moodCategory = 'neutral';
+
+  if (analysis.isPushy) moodCategory = 'annoyed';
+  else if (analysis.isRobotic) moodCategory = 'skeptical';
+  else if (analysis.isTooShort && roundIndex > 0) moodCategory = 'annoyed';
+  else if (analysis.hasEmpathy && analysis.isProfessional) moodCategory = 'positive';
+  else if (analysis.hasStory || (analysis.hasCase && analysis.hasData)) moodCategory = 'positive';
+  else if (analysis.hasValue && !analysis.isPushy) moodCategory = 'positive';
+  else if (p.id === 'silent') moodCategory = 'cold';
+  else if (roundIndex === 0 && !analysis.hasSelfIntro) moodCategory = 'skeptical';
+
+  const strategy = selectStrategy(moodCategory, p, analysis, roundIndex, historyMsgs, phase);
+  return buildResponse(strategy, p, analysis, phase, historyMsgs, difficulty);
+}
+
+function getPhase(scenarioId, roundIndex) {
+  const s = SCENARIOS[scenarioId];
+  if (!s) return { name: '对话中', description: '' };
+  for (const phase of s.phases) {
+    if (phase.rounds.includes(roundIndex)) return phase;
+  }
+  return s.phases[s.phases.length - 1] || { name: '对话中', description: '' };
+}
+
+function selectStrategy(mood, personality, analysis, roundIndex, history, phase) {
+  const p = personality;
+
+  if (roundIndex === 0) {
+    return { type: 'opening', mood: 'neutral', priority: 'respond_to_sales' };
+  }
+
+  switch (mood) {
+    case 'positive':
+      return selectPositiveStrategy(p, analysis, phase, history);
+    case 'skeptical':
+      return selectSkepticalStrategy(p, analysis, phase);
+    case 'annoyed':
+      return selectAnnoyedStrategy(p, analysis, phase);
+    case 'cold':
+      return selectColdStrategy(p, analysis, phase);
+    default:
+      return selectNeutralStrategy(p, analysis, phase, history);
+  }
+}
+
+function selectPositiveStrategy(p, analysis, phase) {
+  const strategies = [];
+  if (analysis.hasCase && !analysis.hasClose) {
+    strategies.push({ type: 'ask_for_more_cases', weight: 4 });
+  }
+  if (analysis.hasSolution) {
+    strategies.push({ type: 'ask_implementation_details', weight: 3 });
+  }
+  if (analysis.hasValue && !analysis.hasPrice) {
+    strategies.push({ type: 'show_interest_in_value', weight: 3 });
+  }
+  if (analysis.hasNextStep) {
+    strategies.push({ type: 'agree_to_next_step', weight: 4 });
+  }
+  if (analysis.hasClose && phase.name === '决定时刻') {
+    strategies.push({ type: 'ready_to_close', weight: 5 });
+  }
+  if (analysis.hasEmpathy && analysis.isProfessional) {
+    strategies.push({ type: 'express_appreciation', weight: 3 });
+  }
+  strategies.push({ type: 'warm_continuation', weight: 2 });
+  return weightedPick(strategies);
+}
+
+function selectSkepticalStrategy(p, analysis, phase) {
+  const strategies = [];
+  if (analysis.hasPrice && !analysis.hasValue) {
+    strategies.push({ type: 'challenge_price', weight: 5 });
+  }
+  if (analysis.hasTechnical) {
+    strategies.push({ type: 'confused_by_tech', weight: 3 });
+  }
+  if (p.id === 'price' && !analysis.hasComparison) {
+    strategies.push({ type: 'compare_with_cheaper', weight: 4 });
+  }
+  if (p.id === 'cognition' && !analysis.hasCase) {
+    strategies.push({ type: 'doubt_effectiveness', weight: 4 });
+  }
+  if (p.id === 'decision' && !analysis.hasNextStep) {
+    strategies.push({ type: 'mention_partner_block', weight: 4 });
+  }
+  strategies.push({ type: 'express_doubt', weight: 2 });
+  return weightedPick(strategies);
+}
+
+function selectAnnoyedStrategy(p, analysis, phase) {
+  return {
+    type: 'push_back',
+    sub: analysis.isPushy ? 'too_pushy' : analysis.isRobotic ? 'too_robotic' : 'general_annoyance',
+  };
+}
+
+function selectColdStrategy(p, analysis, phase) {
+  if (analysis.hasQuestion) return { type: 'brief_answer', weight: 1 };
+  if (analysis.hasStory || analysis.hasCase) return { type: 'slight_interest', weight: 1 };
+  return { type: 'minimal_ack', weight: 1 };
+}
+
+function selectNeutralStrategy(p, analysis, phase, history) {
+  const strategies = [];
+  if (analysis.hasQuestion && !analysis.hasSolution) {
+    strategies.push({ type: 'waiting_for_answer', weight: 3 });
+  }
+  if (phase.name === '试探' || phase.name === '现状探询') {
+    strategies.push({ type: 'share_current_situation', weight: 3 });
+  }
+  if (p.id === 'price') {
+    strategies.push({ type: 'mention_budget_concern', weight: 2 });
+  }
+  strategies.push({ type: 'neutral_continuation', weight: 1 });
+  return weightedPick(strategies);
+}
+
+function weightedPick(items) {
+  const total = items.reduce((s, i) => s + (i.weight || 1), 0);
+  let rand = Math.random() * total;
+  for (const item of items) {
+    rand -= (item.weight || 1);
+    if (rand <= 0) return item;
+  }
+  return items[0];
+}
+
+function buildResponse(strategy, p, analysis, phase, history, difficulty) {
+  const candidates = getCandidates(strategy, p, analysis, phase, difficulty);
+  const historyTexts = new Set(history.map(h => h.content));
+  const fresh = candidates.filter(c => !historyTexts.has(c));
+  const pool = fresh.length > 0 ? fresh : candidates;
+  const response = pool[Math.floor(Math.random() * pool.length)];
+  return postProcess(response, p, analysis);
+}
+
+function getCandidates(strategy, p, analysis, phase, difficulty) {
+  const type = strategy.type;
+
+  const all = {
+    'ask_for_more_cases': [
+      '这个案例听起来不错，他们具体做什么产品的？做了之后询盘量大概涨了多少？',
+      '有意思。你刚才说的这个客户，他大概用了多久看到效果的？我比较关心时间周期。',
+      '嗯，这个例子挺好的。那有没有跟我情况更接近的？比如也是刚起步做外贸的那种。',
+      '案例我听到了，但我想知道更具体的——比如第一个月来了多少询盘，成交了几个？',
+    ],
+    'ask_implementation_details': [
+      '听起来方案是现成的。那从我开始说要做到网站上线，大概需要多长时间？',
+      '明白了。那具体怎么操作呢？我需要准备什么东西？比如产品图片、公司介绍这些？',
+      '嗯，流程我听懂了。那我中间需要参与多少？还是你们大部分都能帮我搞定？',
+      '这个流程比我想象的简单。那我最关心的是——做完之后我自己能改吗？比如以后加新产品什么的。',
+    ],
+    'show_interest_in_value': [
+      '你说的这个点我倒是没想到。确实，独立站是自己的，不像平台还要被抽佣金。',
+      '嗯...你这么说我有点理解了。长期来看确实比一直投广告划算。',
+      '这个角度有意思。我之前一直想着怎么省钱，没想过怎么赚钱。',
+    ],
+    'agree_to_next_step': [
+      '行，那你把详细方案发我微信上吧，我晚上回去仔细看看。',
+      '可以，明天下午我有空，到时候再详细聊一下具体的。',
+      '好的，你先发过来。我这两天看一下，有什么不懂的再问你。',
+      '行，微信上聊也行。你发吧，我看到就回。',
+    ],
+    'ready_to_close': [
+      '行吧，我认真考虑了一下，觉得确实应该做。你说怎么开始吧。',
+      '我基本想通了。之前犹豫主要是因为不了解，现在聊下来感觉你们还是挺靠谱的。怎么走流程？',
+      '好的，我决定了。2980就2980吧，关键是你能帮我把网站做好。具体怎么操作？',
+    ],
+    'express_appreciation': [
+      '你分析得挺专业的。说实话我之前也咨询过几家，但没你说得这么清楚。',
+      '嗯，你确实说到点子上了。我感觉你是真的在帮我分析问题，不是在推销。',
+      '跟你聊天挺舒服的，不会一直催着让我定。这一点我觉得很好。',
+    ],
+    'warm_continuation': [
+      '嗯，你说得对。那接下来你觉得我应该从哪一步开始？',
+      '明白了。你这么一解释我就清楚了。那我们继续聊聊具体方案？',
+      '好，我感觉思路清晰多了。你接着说，我在听。',
+    ],
+    'challenge_price': [
+      '你说的是有道理，但2980毕竟是2980。我淘宝上搜了一下，建站500块的一大把。你说说看，差在哪？',
+      '我不是说你们不好，但这个价格确实超出我预期了。我本来以为几百块就能搞定的。',
+      '说实话吧，我打听了一圈，有的人说独立站几千，有的人说几百。我就想知道到底值不值这个钱。',
+      '你说的这些功能，便宜的建站公司也能做吧？为什么你们要贵这么多？',
+    ],
+    'compare_with_cheaper': [
+      '我在淘宝上看了一下，500块钱就能做个网站，模板也挺好看的。你们这个2980跟淘宝500的到底有什么区别？',
+      '我朋友在Shopify上自己搭了一个，一个月也就几百块。你们这个一次性2980，我算了一下好像也没便宜多少。',
+      '说实话，阿里国际站一年也就几万块，流量还稳定。你们这个独立站2980建好了，流量从哪来？',
+    ],
+    'confused_by_tech': [
+      '等等，你说域名、服务器这些...我完全不懂啊。这些是你们帮我弄还是我自己去搞？',
+      '你说了一大堆专业的东西，我听着有点懵。能不能就用大白话说——我付了2980，能拿到什么？',
+      '这些技术的东西我真的不太懂。我就想知道，做完之后我能不能自己操作？还是每次改东西都要找你们？',
+    ],
+    'doubt_effectiveness': [
+      '网站建好了我知道，但问题是我怎么让人看到呢？总不能建好了放那等着吧。',
+      '我比较担心的是——花了钱建了站，结果没人来看，那不就白费了吗？',
+      '你说独立站能带来客户，但具体是怎么带来的？我现在的客户都是老客户介绍的，独立站真的能开发新客户吗？',
+    ],
+    'mention_partner_block': [
+      '我自己是觉得可以的。但你也知道，我合伙人那边...他对花钱这种事特别谨慎。你有什么东西能让我拿去给他看吗？',
+      '问题不在我这，在我合伙人那。他说现在渠道够用了，没必要折腾。我怎么说他都不太信。',
+      '我回去跟他说了，他就一句话——"能保证效果吗？"我说保证不了，他就说那再看看吧。',
+    ],
+    'express_doubt': [
+      '嗯...你说的这些听起来都不错，但我还是有点不确定。毕竟不是小钱。',
+      '我明白你的意思，但我还是想再考虑考虑。这种事不能太草率。',
+      '你说的我都听到了。但说实话，我还是需要时间消化一下。',
+    ],
+    'push_back': [
+      '哎你别催我啊。这么大的事我总得想清楚吧？你越催我越不敢定。',
+      '你这样催我反而让我有点不舒服。我是真心想了解，但你一直催着让我定...',
+      '你先别急着让我交钱，我还没完全搞清楚呢。等我搞明白了自然会定。',
+      '你这话说得...怎么跟念稿子似的。能不能说人话？',
+      '你不用跟我讲这些套话，我听了太多了。你就实实在在地说，你们能帮我做什么。',
+      '我觉得你根本没在听我说什么，就一直在说你们的产品多好。',
+      '算了，今天先聊到这吧。我有点事，回头再说。',
+    ],
+    'minimal_ack': [
+      '嗯。',
+      '哦。',
+      '行。',
+      '好，知道了。',
+      '嗯。',
+    ],
+    'brief_answer': [
+      '还行吧。',
+      '差不多。',
+      '就那样。',
+      '可以用。',
+    ],
+    'slight_interest': [
+      '这个倒是有点意思。',
+      '嗯...你说。',
+      '然后呢？',
+    ],
+    'waiting_for_answer': [
+      '��，我刚才问的那个问题你还没回答呢。',
+      '你说的这些我听到了，但我更想知道我刚才问的那个...',
+      '你先回答我之前的疑问吧，那个比较关键。',
+    ],
+    'share_current_situation': [
+      '我现在主要靠阿里国际站，一年投了十几万吧，效果一般般。所以想看看独立站能不能多条路。',
+      '我们公司现在外贸主要靠展会和老客户，新客户开发挺难的。独立站是听朋友说的，来了解一下。',
+      '目前的情况就是——有产品、有供应链，但获客渠道太单一了。阿里国际站竞争太大，小公司根本排不上去。',
+    ],
+    'mention_budget_concern': [
+      '你说的是挺好的，但我做生意这么多年，每一笔钱都得算清楚。2980说多不多，但也不是小数目。',
+      '我理解独立站有价值，但我现在的预算是有限的。如果能便宜点或者分期，我会更放心。',
+    ],
+    'neutral_continuation': [
+      '嗯，你接着说，我在听。',
+      '好的，我大概明白了。还有什么？',
+      '嗯，这个我知道了。还有其他方面吗？',
+    ],
+  };
+
+  return all[type] || all['neutral_continuation'];
+}
+
+function postProcess(response, p, analysis) {
+  let text = response;
+
+  if (p.id === 'price') {
+    if (Math.random() < 0.3 && !text.startsWith('说实话')) {
+      text = '说实话，' + text.charAt(0).toLowerCase() + text.slice(1);
+    }
+    if (Math.random() < 0.2) {
+      text = text.replace(/\.$/, '，关键是得值这个钱。');
+    }
+  }
+
+  if (p.id === 'cognition') {
+    if (Math.random() < 0.3 && !text.includes('不太懂')) {
+      text = text.replace(/\.$/, '，不过有些地方我还不太懂。');
+    }
+  }
+
+  if (p.id === 'decision') {
+    if (Math.random() < 0.35 && !text.includes('合伙人')) {
+      text = text.replace(/\.$/, '，不过还得跟合伙人商量一下。');
+    }
+  }
+
+  if (p.id === 'silent') {
+    if (text.length > 30 && Math.random() < 0.6) {
+      const sentences = text.split(/[。！？]/).filter(s => s.trim());
+      text = sentences[0] + '。';
+    }
+  }
+
+  return text;
+}
+
+// ═══════════════════════════════════════════════════════
+//  导出接口
+// ═══════════════════════════════════════════════════════
+
+function getOpeningMessage(scenarioId, customerType) {
+  const openings = OPENINGS[scenarioId]?.[customerType];
+  if (!openings || openings.length === 0) return '你好，请开始吧。';
+  return openings[Math.floor(Math.random() * openings.length)];
+}
+
+function getScenarioContext(scenarioId, customerType) {
+  const s = SCENARIOS[scenarioId];
+  const p = PERSONALITIES[customerType];
+  if (!s || !p) return { title: '未知', persona: '', customerName: '客户', customerType: '', baseTrust: 25, baseIntent: 20 };
+
+  const names = {
+    'first-call': '张总', 'spin': '李总', 'objection': '王总',
+    'closing': '赵总', 'followup': '陈总',
+  };
+
+  return {
+    title: s.title,
+    persona: s.context,
+    customerName: names[scenarioId] || '客户',
+    customerType: p.name,
+    baseTrust: p.baseTrust,
+    baseIntent: p.baseIntent,
+  };
+}
+
+function calculateMetrics(msg, scenarioId, customerType, roundIndex, difficulty) {
+  const analysis = analyzeMessage(msg);
+  const p = PERSONALITIES[customerType];
+  if (!p) return { trustDelta: 0, intentDelta: 0 };
+
+  const state = new CustomerState(customerType, scenarioId, difficulty);
+  const history = [];
+  const result = state.processMessage(msg, analysis, roundIndex, history);
+
+  return {
+    trustDelta: result.trustDelta,
+    intentDelta: result.intentDelta,
+  };
+}
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+// module.exports removed (browser mode)
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ *  跨洋狮 智能评分引擎 v3
+ * ═══════════════════════════════════════════════════════════
+ *
+ * 评分维度（5维度，更科学）：
+ *   1. 专业度 (20%) — 是否准确传递了产品和公司信息
+ *   2. 策略匹配 (25%) — 话术是否匹配客户类型和对话阶段
+ *   3. 沟通质量 (20%) — 语言的自然度、共情、礼貌
+ *   4. 结构完整性 (20%) — 话术是否有清晰的逻辑结构
+ *   5. 推进有效性 (15%) — 是否有效推进了销售进程
+ */
+
+// using global analyzeMessage// ── 场景评分标准 ──
+const SCENARIO_CRITERIA = {
+  'first-call': {
+    keywords: ['跨洋狮', '独立站', '建站', 'WordPress', 'SaaS', '2980', '688', '一次性', '终身', '金讯博', '7年', '200人', '外贸'],
+    structure: ['自我介绍', '价值传递', '需求探询', '下一步约定'],
+    forbidden: ['便宜货', '垃圾', '骗', '忽悠'],
+    goodPatterns: ['问开放式问题', '简短有力', '留下悬念'],
+  },
+  'spin': {
+    keywords: ['现状', '困难', '影响', '解决', '渠道', '客户', '询盘', '转化', '案例', '效果', '利润', '痛点'],
+    structure: ['现状确认', '难点挖掘', '影响放大', '方案引出'],
+    forbidden: ['肯定行', '保证', '100%', '绝对'],
+    goodPatterns: ['用数据说话', '问具体数字', '引导客户自己说'],
+  },
+  'objection': {
+    keywords: ['理解', '价值', '案例', '对比', '服务', '售后', '保障', '合同', '金讯博', '7年', '200人', '同行'],
+    structure: ['顾虑认同', '价值说明', '证据支撑', '风险化解', '行动引导'],
+    forbidden: ['你错了', '不对', '不懂', '你理解错了'],
+    goodPatterns: ['先认同再引导', '用案例回应质疑', '把顾虑正常化'],
+  },
+  'closing': {
+    keywords: ['排期', '名额', '优惠', '锁定', '合同', '付款', '服务', '上线', '对接', '保障'],
+    structure: ['紧迫感营造', '价值重申', '异议消除', '成交引导', '后续铺垫'],
+    forbidden: ['随便', '无所谓', '不急', '再等等'],
+    goodPatterns: ['制造稀缺感', '降低决策门槛', '给出下一步明确指令'],
+  },
+  'followup': {
+    keywords: ['案例', '同行', '效果', '简单', '方案', '对比', '了解', '帮助', '新', '最近'],
+    structure: ['关系重建', '新价值提供', '状态探询', '低门槛引导', '时间锁定'],
+    forbidden: ['怎么还不', '你到底', '快点', '还没决定'],
+    goodPatterns: ['提供新信息', '轻松自然', '尊重客户节奏'],
+  },
+};
+
+// ── 评分主函数 ──
+function scoreResponse(salesMsg, scenarioId, customerType, roundIndex, conversationHistory) {
+  const criteria = SCENARIO_CRITERIA[scenarioId];
+  if (!criteria) return { score: 50, feedback: '场景评分标准缺失', details: {} };
+
+  const analysis = analyzeMessage(salesMsg);
+  const personality = PERSONALITIES[customerType];
+  const phase = getPhaseForRound(scenarioId, roundIndex);
+
+  // ══ 5 维度评分 ══
+  const professionalism = scoreProfessionalism(salesMsg, analysis, criteria, 20);
+  const strategy = scoreStrategy(salesMsg, analysis, customerType, personality, roundIndex, phase, 25);
+  const communication = scoreCommunication(salesMsg, analysis, criteria, 20);
+  const structure = scoreStructure(salesMsg, analysis, criteria, roundIndex, 20);
+  const progression = scoreProgression(salesMsg, analysis, roundIndex, phase, conversationHistory, 15);
+
+  const totalScore = Math.round(professionalism + strategy + communication + structure + progression);
+
+  // 生成反馈
+  const feedback = generateFeedback(
+    totalScore, professionalism, strategy, communication, structure, progression,
+    analysis, criteria, personality, phase
+  );
+
+  return {
+    score: clamp(totalScore, 0, 100),
+    feedback,
+    details: {
+      professionalism: Math.round(professionalism),
+      strategy: Math.round(strategy),
+      communication: Math.round(communication),
+      structure: Math.round(structure),
+      progression: Math.round(progression),
+    },
+  };
+}
+
+// ══ 维度1：专业度 (20分) ══
+function scoreProfessionalism(msg, analysis, criteria, maxPoints) {
+  let score = maxPoints * 0.3; // 基础分
+
+  // 关键词覆盖
+  let kwMatched = 0;
+  for (const kw of criteria.keywords) {
+    if (msg.includes(kw)) kwMatched++;
+  }
+  const kwRatio = kwMatched / Math.min(criteria.keywords.length, 10);
+  score += kwRatio * maxPoints * 0.35;
+
+  // 专业性判断
+  if (analysis.isProfessional) score += maxPoints * 0.15;
+  if (analysis.isSpecific) score += maxPoints * 0.1;
+  if (analysis.hasData) score += maxPoints * 0.1;
+
+  // 扣分
+  if (analysis.isRobotic) score -= maxPoints * 0.2;
+  if (analysis.isTooShort) score -= maxPoints * 0.15;
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 维度2：策略匹配 (25分) ══
+function scoreStrategy(msg, analysis, customerType, personality, roundIndex, phase, maxPoints) {
+  let score = maxPoints * 0.4;
+
+  // 客户类型匹配
+  switch (customerType) {
+    case 'price':
+      if (/性价比|投资回报|长期|划算|一次性.*终身|投入产出/i.test(msg)) score += maxPoints * 0.2;
+      if (/便宜|降价|打折|优惠|砍价/i.test(msg) && !/价值|服务|质量|保障/i.test(msg)) score -= maxPoints * 0.12;
+      if (analysis.hasValue && analysis.hasData) score += maxPoints * 0.1;
+      break;
+    case 'cognition':
+      if (/简单|容易|比如|举例|打个比方|大白话|操作/i.test(msg)) score += maxPoints * 0.2;
+      if (analysis.hasTechnical) score -= maxPoints * 0.12;
+      if (analysis.hasStory || analysis.hasCase) score += maxPoints * 0.1;
+      break;
+    case 'decision':
+      if (/方案|资料|对比|打印|合伙人|给他看|参考|说服/i.test(msg)) score += maxPoints * 0.2;
+      if (/马上|立刻|赶紧|今天就|不用商量/i.test(msg)) score -= maxPoints * 0.15;
+      if (analysis.hasNextStep && /资料|方案|文档/i.test(msg)) score += maxPoints * 0.1;
+      break;
+    case 'silent':
+      if (/方便|简短|不打扰|有空|随时|你忙|不着急/i.test(msg)) score += maxPoints * 0.2;
+      if (msg.length > 200) score -= maxPoints * 0.1;
+      if (analysis.hasStory) score += maxPoints * 0.1;
+      break;
+  }
+
+  // 阶段匹配
+  if (phase) {
+    switch (phase.name) {
+      case '戒备':
+        if (analysis.hasSelfIntro && analysis.hasGreeting) score += maxPoints * 0.08;
+        if (analysis.isPushy) score -= maxPoints * 0.2;
+        break;
+      case '试探':
+      case '现状探询':
+        if (analysis.hasQuestion) score += maxPoints * 0.08;
+        break;
+      case '决定时刻':
+        if (analysis.hasClose || analysis.hasGuarantee) score += maxPoints * 0.1;
+        if (analysis.isDismissive) score -= maxPoints * 0.15;
+        break;
+    }
+  }
+
+  // 轮次策略
+  if (roundIndex === 0 && !analysis.hasSelfIntro) score -= maxPoints * 0.1;
+  if (roundIndex > 2 && !analysis.hasNextStep && !analysis.hasClose) score -= maxPoints * 0.05;
+
+  // 负面策略
+  if (analysis.isPushy) score -= maxPoints * 0.25;
+  if (analysis.isDefensive) score -= maxPoints * 0.1;
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ═��� 维度3：沟通质量 (20分) ══
+function scoreCommunication(msg, analysis, criteria, maxPoints) {
+  let score = maxPoints * 0.35;
+
+  // 加分项
+  if (analysis.hasPolite) score += maxPoints * 0.12;
+  if (analysis.hasEmpathy) score += maxPoints * 0.15;
+  if (analysis.hasHumor) score += maxPoints * 0.08;
+  if (analysis.isStructured) score += maxPoints * 0.1;
+  if (analysis.hasQuestion) score += maxPoints * 0.08;
+  if (analysis.hasStory) score += maxPoints * 0.07;
+
+  // 扣分项
+  if (analysis.isTooShort) score -= maxPoints * 0.25;
+  if (analysis.isRobotic) score -= maxPoints * 0.2;
+  if (analysis.isPushy) score -= maxPoints * 0.15;
+  if (analysis.isDismissive) score -= maxPoints * 0.1;
+  if (analysis.isDefensive) score -= maxPoints * 0.08;
+
+  // 禁用词检查
+  for (const word of criteria.forbidden) {
+    if (msg.includes(word)) score -= maxPoints * 0.2;
+  }
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 维度4：结构完整性 (20分) ══
+function scoreStructure(msg, analysis, criteria, roundIndex, maxPoints) {
+  let score = 0;
+  const elements = criteria.structure;
+  const perElement = maxPoints / elements.length;
+
+  const checks = {
+    '自我介绍': /我是|我叫|我们公司|我们团队|跨洋狮|金讯博/i,
+    '价值传递': /帮助|解决|提升|增长|获取|客户|询盘|独立站|价值|效果/i,
+    '需求探询': /[？?]|什么|怎么|如何|能不能|目前|现在/i,
+    '下一步约定': /加微信|发您|联系|明天|下次|沟通|约|聊/i,
+    '现状确认': /目前|现在|当前|渠道|方式|在用什么/i,
+    '难点挖掘': /困难|问题|挑战|困扰|痛点|怎么办|瓶颈/i,
+    '影响放大': /如果|长期|持续|越来越|错过|损失|风险|影响/i,
+    '方案引出': /方案|解决|帮助|建议|推荐|适合|可以这样/i,
+    '顾虑认同': /理解|明白|确实|正常|担心|顾虑|你说得对/i,
+    '价值说明': /价值|好处|收益|效果|回报|投资|优势/i,
+    '证据支撑': /案例|数据|客户|同行|证明|结果|做过/i,
+    '风险化解': /保障|合同|退款|售后|放心|保证|承诺/i,
+    '行动引导': /下一步|确认|安排|开始|启动|做|定/i,
+    '紧迫感营造': /时间|排期|名额|优惠|错过|等不了|限/i,
+    '价值重申': /价值|效果|收益|投资|回报|划算|值/i,
+    '异议消除': /理解|但是|其实|实际|案例|之前/i,
+    '成交引导': /合同|付款|确认|定了|锁定|开始|下单/i,
+    '后续铺垫': /服务|上线|运营|对接|后续|售后/i,
+    '关系重建': /上次|之前|最近|好久|还好|记得/i,
+    '新价值提供': /新|最近|刚|内容|资料|更新|案例/i,
+    '状态探询': /怎么样|如何|考虑|想法|进展|觉得/i,
+    '低门槛引导': /简单|方便|快速|不复杂|688|SaaS|先试/i,
+    '时间锁定': /周几|哪天|具体|时间|确认|约/i,
+  };
+
+  for (const elem of elements) {
+    if (checks[elem] && checks[elem].test(msg)) {
+      score += perElement;
+    }
+  }
+
+  // 结构化加分
+  if (analysis.isStructured) score += maxPoints * 0.1;
+  // 第一轮不需要完整结构
+  if (roundIndex === 0) score = Math.min(score * 1.2, maxPoints);
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 维度5：推进有效性 (15分) ══
+function scoreProgression(msg, analysis, roundIndex, phase, history, maxPoints) {
+  let score = maxPoints * 0.3;
+
+  // 是否在推动对话前进
+  if (analysis.hasNextStep) score += maxPoints * 0.25;
+  if (analysis.hasClose && roundIndex >= 2) score += maxPoints * 0.2;
+  if (analysis.hasQuestion) score += maxPoints * 0.15; // 提问 = 引导对话
+  if (analysis.hasSolution) score += maxPoints * 0.15;
+  if (analysis.hasGuarantee) score += maxPoints * 0.1;
+
+  // 停滞信号
+  if (analysis.isTooShort && roundIndex > 0) score -= maxPoints * 0.2;
+  if (analysis.isDismissive) score -= maxPoints * 0.2;
+  if (!analysis.hasQuestion && !analysis.hasNextStep && !analysis.hasClose && roundIndex > 1) {
+    score -= maxPoints * 0.1; // 没有推进动作
+  }
+
+  return clamp(score, 0, maxPoints);
+}
+
+// ══ 反馈生成 ══
+function generateFeedback(total, prof, strat, comm, struct, prog, analysis, criteria, personality, phase) {
+  const parts = [];
+
+  // 总体评价
+  if (total >= 85) {
+    parts.push('👍 非常出色！话术自然流畅，策略精准，客户体验极佳。');
+  } else if (total >= 70) {
+    parts.push('✅ 表现不错，基本合格。有几个细节可以再打磨一下。');
+  } else if (total >= 55) {
+    parts.push('⚠️ 中等水平，部分关键要素缺失或策略不够精准。');
+  } else if (total >= 40) {
+    parts.push('🔶 需要较大改进，话术存在明显短板。');
+  } else {
+    parts.push('❌ 表现不理想，建议重新审视策略和话术。');
+  }
+
+  // 各维度具体建议（按最差的维度优先）
+  const dims = [
+    { name: '专业度', score: prof, max: 20, tip: '💡 建议补充产品和公司关键信息，用数据支撑观点。' },
+    { name: '策略匹配', score: strat, max: 25, tip: '🎯 建议针对' + (personality?.name || '客户') + '调整话术风格和内容重点。' },
+    { name: '沟通质量', score: comm, max: 20, tip: '📝 建议增加共情表达，让语言更自然、更有人情味。' },
+    { name: '结构完整', score: struct, max: 20, tip: '🔧 话术结构不够完整，建议补充缺失的沟通要素。' },
+    { name: '推进有效', score: prog, max: 15, tip: '🚀 建议在结尾给出明确的下一步行动指引。' },
+  ];
+
+  dims.sort((a, b) => (a.score / a.max) - (b.score / b.max));
+
+  // 只提示最差的2个维度
+  for (const dim of dims.slice(0, 2)) {
+    if (dim.score / dim.max < 0.6) {
+      parts.push(dim.tip);
+    }
+  }
+
+  // 特殊提醒
+  if (analysis.isRobotic) {
+    parts.push('🤖 你的话术听起来像在念稿子，请用更自然的口语化表达。');
+  }
+  if (analysis.isPushy) {
+    parts.push('⚠️ 语气太急迫了！给客户施加过多压力会适得其反。');
+  }
+  if (analysis.isTooShort && total < 70) {
+    parts.push('📏 回复过短，无法充分展示专业性和价值，建议展开说明。');
+  }
+  if (!analysis.hasQuestion && total < 75) {
+    parts.push('💬 建议增加提问来引导对话，而不是单向输出信息。');
+  }
+  if (!analysis.hasEmpathy && total < 70) {
+    parts.push('🤝 缺少共情表达，客户可能觉得你不理解他的处境。');
+  }
+
+  return parts.join('\n');
+}
+
+// ── 辅助函数 ──
+function getPhaseForRound(scenarioId, roundIndex) {
+  const s = SCENARIOS[scenarioId];
+  if (!s?.phases) return null;
+  for (const phase of s.phases) {
+    if (phase.rounds.includes(roundIndex)) return phase;
+  }
+  return s.phases[s.phases.length - 1] || null;
+}
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+// module.exports removed (browser mode)
+
+// ═══════════════════════════════════════════════════════════════
+//  后端路由逻辑（浏览器内运行）
+// ═══════════════════════════════════════════════════════════════
+
+const customerStates = new Map();
+
+function getCustomerState(examId, scenarioId, customerType, difficulty) {
+  const key = examId + ':' + scenarioId;
+  if (!customerStates.has(key)) {
+    customerStates.set(key, new CustomerState(customerType, scenarioId, difficulty));
+  }
+  return customerStates.get(key);
+}
+
+function clearCustomerState(examId) {
+  for (const key of customerStates.keys()) {
+    if (key.startsWith(examId + ':')) customerStates.delete(key);
+  }
+}
+
+function getRandomCustomerType() {
+  const types = ['price', 'cognition', 'decision', 'silent'];
+  return types[Math.floor(Math.random() * types.length)];
+}
+
+function getMaxRounds(scenarioId, difficulty) {
+  const base = { 'first-call': 5, 'spin': 6, 'objection': 6, 'closing': 5, 'followup': 4 };
+  const mod = { easy: 1, medium: 0, hard: -1 };
+  return Math.max(3, (base[scenarioId] || 5) + (mod[difficulty] || 0));
+}
+
+async function apiExamStart(params) {
+  const { traineeName, scenarios, difficulty } = params;
+  const examId = generateUUID();
+  const now = new Date().toISOString();
+
+  dbRun('INSERT INTO exams (id, trainee_name, difficulty, scenarios, started_at, status) VALUES (?, ?, ?, ?, ?, ?)',
+    [examId, traineeName, difficulty, JSON.stringify(scenarios), now, 'in_progress']);
+
+  const firstScenarioId = scenarios[0];
+  const customerType = getRandomCustomerType();
+  const opening = getOpeningMessage(firstScenarioId, customerType);
+  const context = getScenarioContext(firstScenarioId, customerType);
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, 0, ?, ?)',
+    [examId, firstScenarioId, 'customer', opening]);
+
+  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, 0, ?, ?, 0, 0)',
+    [examId, firstScenarioId, context.baseTrust, context.baseIntent]);
+
+  return {
+    examId, currentScenario: firstScenarioId, customerType,
+    customerName: context.customerName, scenarioTitle: context.title,
+    scenarioPersona: context.persona, opening,
+    scenarioIndex: 0, totalScenarios: scenarios.length,
+    trust: context.baseTrust, intent: context.baseIntent,
+  };
+}
+
+async function apiExamMessage(params) {
+  const { examId, scenarioId, message, customerType, roundIndex } = params;
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  if (!exam) throw new Error('考核不存在');
+
+  const history = dbAll('SELECT role, content FROM exam_messages WHERE exam_id = ? AND scenario_id = ? ORDER BY id ASC',
+    [examId, scenarioId]);
+
+  const scoreResult = scoreResponse(message, scenarioId, customerType, roundIndex || 0, history);
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content, score, feedback) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [examId, scenarioId, roundIndex || 0, 'sales', message, scoreResult.score, scoreResult.feedback]);
+
+  const state = getCustomerState(examId, scenarioId, customerType, exam.difficulty);
+  const msgAnalysis = analyzeMessage(message);
+  const stateResult = state.processMessage(message, msgAnalysis, roundIndex || 0, history);
+
+  let customerMsg;
+  try {
+    const llmReply = await generateCustomerReplyLLM(message, {
+      scenarioId, customerType, roundIndex: roundIndex || 0, historyMsgs: history, difficulty: exam.difficulty, state: null
+    });
+    customerMsg = llmReply || generateResponseRules(message, scenarioId, customerType, roundIndex || 0, history, exam.difficulty);
+  } catch(e) {
+    customerMsg = generateResponseRules(message, scenarioId, customerType, roundIndex || 0, history, exam.difficulty);
+  }
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, ?, ?, ?)',
+    [examId, scenarioId, (roundIndex || 0) + 1, 'customer', customerMsg]);
+
+  const maxRounds = getMaxRounds(scenarioId, exam.difficulty);
+  const shouldEnd = (roundIndex || 0) + 1 >= maxRounds;
+
+  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [examId, scenarioId, roundIndex || 0, stateResult.trust, stateResult.intent, stateResult.trustDelta, stateResult.intentDelta]);
+
+  return {
+    customerMessage: customerMsg, score: scoreResult.score,
+    feedback: scoreResult.feedback, details: scoreResult.details,
+    roundIndex: (roundIndex || 0) + 1, maxRounds, scenarioComplete: shouldEnd,
+    trust: stateResult.trust, intent: stateResult.intent,
+    trustDelta: stateResult.trustDelta, intentDelta: stateResult.intentDelta,
+  };
+}
+
+async function apiExamNextScenario(params) {
+  const { examId, currentScenarioIndex } = params;
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  const scenarios = JSON.parse(exam.scenarios);
+  const nextIndex = (currentScenarioIndex || 0) + 1;
+  if (nextIndex >= scenarios.length) return { allComplete: true };
+
+  const nextScenarioId = scenarios[nextIndex];
+  const customerType = getRandomCustomerType();
+  const opening = getOpeningMessage(nextScenarioId, customerType);
+  const context = getScenarioContext(nextScenarioId, customerType);
+
+  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, 0, ?, ?)',
+    [examId, nextScenarioId, 'customer', opening]);
+  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, 0, ?, ?, 0, 0)',
+    [examId, nextScenarioId, context.baseTrust, context.baseIntent]);
+
+  const oldId = scenarios[currentScenarioIndex || 0];
+  if (oldId) customerStates.delete(examId + ':' + oldId);
+
+  return {
+    scenarioId: nextScenarioId, customerType,
+    customerName: context.customerName, scenarioTitle: context.title,
+    scenarioPersona: context.persona, opening,
+    scenarioIndex: nextIndex, totalScenarios: scenarios.length,
+    trust: context.baseTrust, intent: context.baseIntent,
+  };
+}
+
+
+function apiExamStop(examId) {
+  return finishExamLogic(examId, 'stopped');
+}
+
+function apiExamFinish(examId) {
+  return finishExamLogic(examId, 'completed');
+}
+
+function finishExamLogic(examId, status) {
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  const scenarios = JSON.parse(exam.scenarios);
+  const scenarioResults = [];
+  let totalScore = 0, totalMaxScore = 0;
+
+  for (const sid of scenarios) {
+    const msgs = dbAll('SELECT score FROM exam_messages WHERE exam_id = ? AND scenario_id = ? AND role = ? AND score IS NOT NULL',
+      [examId, sid, 'sales']);
+    const scores = msgs.map(m => m.score);
+    const sTotal = scores.reduce((a,b) => a+b, 0);
+    const sMax = scores.length * 100;
+    const pct = sMax > 0 ? Math.round((sTotal / sMax) * 100) : 0;
+    scenarioResults.push({ scenarioId: sid, totalScore: sTotal, maxScore: sMax, percentage: pct, rounds: scores.length });
+    totalScore += sTotal; totalMaxScore += sMax;
+  }
+
+  const overallPct = totalMaxScore > 0 ? Math.round((totalScore / totalMaxScore) * 100) : 0;
+  let grade;
+  if (overallPct >= 90) grade = '优秀';
+  else if (overallPct >= 75) grade = '良好';
+  else if (overallPct >= 60) grade = '及格';
+  else grade = '需加强';
+
+  dbRun('UPDATE exams SET overall_score = ?, grade = ?, finished_at = ?, status = ? WHERE id = ?',
+    [overallPct, grade, new Date().toISOString(), status, examId]);
+
+  clearCustomerState(examId);
+
+  return {
+    examId, traineeName: exam.trainee_name, difficulty: exam.difficulty,
+    overallScore: overallPct, grade, scenarioResults,
+    startedAt: exam.started_at, finishedAt: new Date().toISOString(),
+    stopped: status === 'stopped',
+  };
+}
+
+function apiAdminStats() {
+  const totalExams = dbGet('SELECT COUNT(*) as count FROM exams').count;
+  const completedExams = dbGet("SELECT COUNT(*) as count FROM exams WHERE status = 'completed'").count;
+  const avgScore = dbGet('SELECT ROUND(AVG(CAST(overall_score AS FLOAT))) as avg FROM exams WHERE overall_score IS NOT NULL').avg || 0;
+  const todayExams = dbGet("SELECT COUNT(*) as count FROM exams WHERE date(started_at) = date('now')").count;
+  return { totalExams, completedExams, avgScore, todayExams };
+}
+
+function apiAdminExams(page = 1, limit = 50) {
+  const offset = (page - 1) * limit;
+  const exams = dbAll('SELECT * FROM exams ORDER BY started_at DESC LIMIT ? OFFSET ?', [limit, offset]);
+  const total = dbGet('SELECT COUNT(*) as count FROM exams').count;
+  return { exams, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+}
+
+function apiAdminExamDetail(id) {
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [id]);
+  if (!exam) return null;
+  const messages = dbAll('SELECT * FROM exam_messages WHERE exam_id = ? ORDER BY id ASC', [id]);
+  const scenarioScores = dbAll('SELECT * FROM scenario_scores WHERE exam_id = ?', [id]);
+  return { exam, messages, scenarioScores };
+}
+
+function apiAdminDeleteExam(id) {
+  dbRun('DELETE FROM exam_messages WHERE exam_id = ?', [id]);
+  dbRun('DELETE FROM scenario_scores WHERE exam_id = ?', [id]);
+  dbRun('DELETE FROM exam_metrics WHERE exam_id = ?', [id]);
+  dbRun('DELETE FROM exams WHERE id = ?', [id]);
+}
+
+
+
+// ═══════════════════ CONFIG ═══════════════════
+// API calls now go through local functions
+const SCENARIOS = [
+  { id:'first-call', name:'首通电话', icon:'📞', desc:'客资到手20分钟内完成首通' },
+  { id:'spin', name:'SPIN挖需', icon:'🔍', desc:'用SPIN方法深度挖掘需求' },
+  { id:'objection', name:'异议处理', icon:'🛡️', desc:'应对客户质疑和拒绝' },
+  { id:'closing', name:'逼单技巧', icon:'💪', desc:'在合适时机推动成交' },
+  { id:'followup', name:'跟进话术', icon:'📝', desc:'Day2-3差异化跟进触达' },
+];
+const TYPE_INFO = {
+  price:{name:'价格敏感型',cls:'type-price',avatar:'价'},
+  cognition:{name:'认知不足型',cls:'type-cognition',avatar:'认'},
+  decision:{name:'决策受阻型',cls:'type-decision',avatar:'决'},
+  silent:{name:'沉默观望型',cls:'type-silent',avatar:'默'},
+};
+
+let state = {
+  examId:null,scenarios:[],difficulty:'medium',scenarioIndex:0,roundIndex:0,
+  currentScenarioId:null,customerType:null,scores:[],isTyping:false,active:false,
+  trust:25,intent:20,
+};
+
+// ═══════════════════ INIT ═══════════════════
+async function init(){
+  // Initialize database first
+  try {
+    await initDatabase();
+    console.log('Database initialized');
+  } catch(e) {
+    console.error('DB init failed:', e);
+    toast('数据库初始化失败，请刷新重试');
+    return;
+  }
+  
+  const grid=document.getElementById('scenarioGrid');
+  SCENARIOS.forEach(s=>{
+    const c=document.createElement('div');
+    c.className='scenario-card selected'; c.dataset.id=s.id;
+    c.innerHTML=`<div class="icon">${s.icon}</div><div class="name">${s.name}</div><div class="desc">${s.desc}</div>`;
+    c.onclick=()=>c.classList.toggle('selected');
+    grid.appendChild(c);
+  });
+  state.scenarios=SCENARIOS.map(s=>s.id);
+}
+
+// ═══════════════════ START ═══════════════════
+async function startExam(){
+  const name=document.getElementById('traineeName').value.trim();
+  const scenarios=getSelectedScenarios();
+  if(!name){toast('请输入姓名');return;}
+  if(scenarios.length===0){toast('请选择场景');return;}
+  state.difficulty=document.getElementById('difficulty').value;
+  state.scenarios=scenarios; state.scenarioIndex=0; state.roundIndex=0; state.scores=[];
+  try{
+    const r=await fetch(API+'/api/exam/start',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({traineeName:name,scenarios,difficulty:state.difficulty})});
+    const d=await r.json();
+    state.examId=d.examId; state.currentScenarioId=d.currentScenario; state.customerType=d.customerType;
+    state.trust=d.trust||25; state.intent=d.intent||20;
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('examScreen').classList.add('active');
+    document.getElementById('reportOverlay').classList.remove('active');
+    updateSidebar(d);
+    updateMetrics(state.trust,state.intent,0,0);
+    const chat=document.getElementById('chatMessages'); chat.innerHTML='';
+    addSys('📋 '+d.scenarioTitle+' | '+d.customerName);
+    addSys('💡 '+d.scenarioPersona);
+    addSys('👤 '+d.customerName+' | '+TYPE_INFO[d.customerType].name);
+    setTimeout(()=>addCustomer(d.opening),600);
+    document.getElementById('userInput').focus();
+    state.active=true;
+  }catch(e){toast('启动失败: '+e.message);}
+}
+
+function getSelectedScenarios(){
+  return [...document.querySelectorAll('#scenarioGrid .scenario-card.selected')].map(c=>c.dataset.id);
+}
+
+// ═══════════════════ SIDEBAR ═══════════════════
+function updateSidebar(d){
+  const ti=TYPE_INFO[d.customerType];
+  document.getElementById('currentScenario').textContent=d.scenarioTitle;
+  document.getElementById('customerNameDisplay').textContent=d.customerName;
+  const tag=document.getElementById('customerTypeTag');
+  tag.textContent=ti.name; tag.className='customer-type '+ti.cls;
+  document.getElementById('customerName').textContent=d.customerName;
+  document.getElementById('customerAvatar').textContent=ti.avatar;
+  document.getElementById('roundCount').textContent='0';
+  document.getElementById('liveScore').textContent='-';
+}
+
+function updateMetrics(trust,intent,tDelta,iDelta){
+  document.getElementById('trustValue').textContent=trust;
+  document.getElementById('trustBar').style.width=trust+'%';
+  document.getElementById('intentValue').textContent=intent;
+  document.getElementById('intentBar').style.width=intent+'%';
+  const td=document.getElementById('trustDelta');
+  td.textContent=tDelta!==0?(tDelta>0?'↑+'+tDelta:'↓'+tDelta):'';
+  td.className='m-delta '+(tDelta>=0?'delta-up':'delta-down');
+  const id=document.getElementById('intentDelta');
+  id.textContent=iDelta!==0?(iDelta>0?'↑+'+iDelta:'↓'+iDelta):'';
+  id.className='m-delta '+(iDelta>=0?'delta-up':'delta-down');
+  // Color-code trust bar
+  const tBar=document.getElementById('trustBar');
+  if(trust>=70)tBar.style.background='#10B981';else if(trust>=40)tBar.style.background='#3B82F6';else tBar.style.background='#EF4444';
+  const iBar=document.getElementById('intentBar');
+  if(intent>=70)iBar.style.background='#10B981';else if(intent>=40)iBar.style.background='#8B5CF6';else iBar.style.background='#F59E0B';
+}
+
+// ═══════════════════ CHAT ═══════════════════
+function addCustomer(t){appendMsg('customer',t);}
+function addSales(t,s){appendMsg('sales',t,s);}
+function addSys(t,ty){appendMsg('system',t,null,ty);}
+
+function appendMsg(role,text,score,type){
+  const el=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='message '+role+(type?' '+type:'');
+  let extra='';
+  if(role==='sales'&&score!==undefined){
+    const cls=score>=75?'score-high':score>=55?'score-mid':'score-low';
+    extra=`<div class="score-tag ${cls}">评分:${score}</div>`;
+  }
+  div.innerHTML=`<div class="bubble">${esc(text)}</div>${extra}<div class="time">${now()}</div>`;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+
+function showTyping(cb,delay){
+  state.isTyping=true;
+  const el=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='message customer'; div.id='typingIndicator';
+  div.innerHTML='<div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  el.appendChild(div); el.scrollTop=el.scrollHeight;
+  setTimeout(()=>{const t=document.getElementById('typingIndicator');if(t)t.remove();state.isTyping=false;cb();},delay||1400);
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function now(){return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});}
+
+// ═══════════════════ SEND ═══════════════════
+function handleKeyDown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+
+async function sendMessage(){
+  if(state.isTyping||!state.active)return;
+  const input=document.getElementById('userInput');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value=''; input.style.height='auto';
+  addSales(text); state.scores.push(null);
+  try{
+    const r=await fetch(API+'/api/exam/message',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({examId:state.examId,scenarioId:state.currentScenarioId,message:text,customerType:state.customerType,roundIndex:state.roundIndex})});
+    const d=await r.json();
+    // Update score tag on last sales message
+    const salesMsgs=document.querySelectorAll('#chatMessages .message.sales');
+    const last=salesMsgs[salesMsgs.length-1];
+    if(last&&d.score!==undefined){
+      const tag=last.querySelector('.score-tag');
+      if(tag){const cls=d.score>=75?'score-high':d.score>=55?'score-mid':'score-low';tag.textContent='评分:'+d.score;tag.className='score-tag '+cls;}
+    }
+    state.scores[state.scores.length-1]=d.score;
+    state.roundIndex=d.roundIndex;
+    document.getElementById('roundCount').textContent=state.roundIndex;
+    document.getElementById('liveScore').textContent=d.score;
+    // Update trust/intent
+    if(d.trust!==undefined){
+      state.trust=d.trust; state.intent=d.intent;
+      updateMetrics(d.trust,d.intent,d.trustDelta||0,d.intentDelta||0);
+    }
+    if(d.feedback)addSys(d.feedback,d.score>=70?'feedback':'warning');
+    if(d.scenarioComplete){
+      showTyping(()=>{
+        addCustomer(d.customerMessage);
+        addSys('✅ 当前场景完成！','feedback');
+        const avg=state.scores.filter(s=>s!==null).reduce((a,b)=>a+b,0)/state.scores.filter(s=>s!==null).length||0;
+        addSys('📊 本轮均分：'+Math.round(avg),avg>=70?'feedback':'warning');
+        setTimeout(async()=>{
+          try{
+            const nr=await fetch(API+'/api/exam/next-scenario',{method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({examId:state.examId,currentScenarioIndex:state.scenarioIndex})});
+            const nd=await nr.json();
+            if(nd.allComplete){finishExam();}
+            else{
+              state.scenarioIndex=nd.scenarioIndex; state.currentScenarioId=nd.scenarioId;
+              state.customerType=nd.customerType; state.roundIndex=0; state.scores=[];
+              state.trust=nd.trust||25; state.intent=nd.intent||20;
+              updateSidebar(nd); updateMetrics(state.trust,state.intent,0,0);
+              addSys('🔄 进入下一个场景...','system');
+              document.getElementById('chatMessages').innerHTML='';
+              addSys('📋 '+nd.scenarioTitle+' | '+nd.customerName);
+              addSys('💡 '+nd.scenarioPersona);
+              addSys('👤 '+nd.customerName+' | '+TYPE_INFO[nd.customerType].name);
+              setTimeout(()=>addCustomer(nd.opening),500);
+              document.getElementById('userInput').focus();
+            }
+          }catch(e){toast('切换失败: '+e.message);}
+        },1500);
+      },1000);
+    }else{
+      showTyping(()=>{addCustomer(d.customerMessage);document.getElementById('userInput').focus();},800+Math.random()*1200);
+    }
+  }catch(e){addSys('❌ 网络错误: '+e.message,'warning');}
+}
+
+// ═══════════════════ STOP ═══════════════════
+async function stopExam(){
+  if(!state.active)return;
+  if(!confirm('确定要停止当前考核吗？已完成的部分会被保存。'))return;
+  state.active=false;
+  try{
+    const r=await fetch(API+'/api/exam/stop',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({examId:state.examId})});
+    const d=await r.json();
+    showReport(d,true);
+  }catch(e){toast('停止失败: '+e.message);}
+}
+
+// ═══════════════════ FINISH ═══════════════════
+async function finishExam(){
+  state.active=false;
+  try{
+    const r=await fetch(API+'/api/exam/finish',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({examId:state.examId})});
+    const d=await r.json();
+    showReport(d,false);
+  }catch(e){toast('生成报告失败: '+e.message);}
+}
+
+function showReport(d,stopped){
+  const gc=d.grade==='优秀'?'grade-excellent':d.grade==='良好'?'grade-good':d.grade==='及格'?'grade-pass':'grade-fail';
+  document.getElementById('reportCard').innerHTML=`
+    <h2>📊 考核报告${stopped?' <span class="stopped-tag">提前结束</span>':''}</h2>
+    <p style="text-align:center;color:var(--text-secondary);font-size:13px">考生：${d.traineeName} | 难度：${d.difficulty==='easy'?'初级':d.difficulty==='medium'?'中级':'高级'} | ${new Date(d.finishedAt).toLocaleDateString('zh-CN')}</p>
+    <div class="overall-score">
+      <div class="big-num">${d.overallScore}</div>
+      <div style="font-size:16px;color:var(--text-secondary)">综合评分</div>
+      <span class="grade-badge ${gc}">${d.grade}</span>
+    </div>
+    <h3 style="margin-bottom:8px;color:var(--primary);font-size:15px">📈 各场景得分</h3>
+    <div class="dim-scores">
+      ${(d.scenarioResults||[]).map(sr=>{
+        const s=SCENARIOS.find(sc=>sc.id===sr.scenarioId);
+        return `<div class="dim-item">
+          <div class="dim-name">${s?s.name:sr.scenarioId} (${sr.rounds||0}轮)</div>
+          <div class="dim-score">${sr.percentage}分</div>
+          <div class="dim-bar-bg"><div class="dim-bar-fill" style="width:${sr.percentage}%;background:${sr.percentage>=80?'var(--success)':sr.percentage>=60?'var(--warning)':'var(--danger)'}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${d.lastDetails?`
+    <h3 style="margin-bottom:8px;color:var(--primary);font-size:15px;margin-top:16px">🔍 最后一轮5维评分</h3>
+    <div class="dim-scores">
+      ${[
+        {k:'professionalism',n:'🎓 专业度',m:20},
+        {k:'strategy',n:'🎯 策略匹配',m:25},
+        {k:'communication',n:'💬 沟通质量',m:20},
+        {k:'structure',n:'📐 结构完整',m:20},
+        {k:'progression',n:'🚀 推进有效',m:15}
+      ].map(dim=>{
+        const v=d.lastDetails[dim.k]||0;
+        const pct=Math.round(v/dim.m*100);
+        return `<div class="dim-item">
+          <div class="dim-name">${dim.n}</div>
+          <div class="dim-score">${v}/${dim.m}分</div>
+          <div class="dim-bar-bg"><div class="dim-bar-fill" style="width:${pct}%;background:${pct>=80?'var(--success)':pct>=60?'var(--warning)':'var(--danger)'}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`:''}
+    ${(d.goodFeedback||[]).length?`<div class="feedback-section"><h3>✅ 表现亮点</h3>${d.goodFeedback.map(f=>`<div class="feedback-item feedback-good"><span>👍</span><span>${esc(f.text).replace(/\n/g,'<br>')}</span></div>`).join('')}</div>`:''}
+    ${(d.improveFeedback||[]).length?`<div class="feedback-section"><h3>🔧 需要改进</h3>${d.improveFeedback.map(f=>`<div class="feedback-item feedback-improve"><span>💡</span><span>${esc(f.text).replace(/\n/g,'<br>')}</span></div>`).join('')}</div>`:''}
+    <div class="btn-row">
+      <button class="btn-outline" onclick="retakeExam()">🔄 重新考核</button>
+      <button class="btn btn-primary" onclick="closeReport()">✅ 确认</button>
+    </div>
+  `;
+  document.getElementById('reportOverlay').classList.add('active');
+}
+
+function retakeExam(){
+  document.getElementById('reportOverlay').classList.remove('active');
+  document.getElementById('examScreen').classList.remove('active');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  state.active=false;
+}
+function closeReport(){document.getElementById('reportOverlay').classList.remove('active');}
+
+// ═══════════════════ ADMIN ═══════════════════
+async function showAdmin(){
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('examScreen').classList.remove('active');
+  document.getElementById('adminPanel').classList.add('active');
+  document.getElementById('adminLink').classList.add('hidden');
+  document.getElementById('examLink').classList.remove('hidden');
+  document.getElementById('headerBadge').textContent='📊 管理后台';
+  document.getElementById('llmConfigPanel').style.display='block';
+  state.active=false;
+  await loadAdmin();
+  loadLlmStatus();
+}
+function showExamEntry(){
+  document.getElementById('adminPanel').classList.remove('active');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  document.getElementById('adminLink').classList.remove('hidden');
+  document.getElementById('examLink').classList.add('hidden');
+  document.getElementById('headerBadge').textContent='🏢 跨洋狮';
+  document.getElementById('llmConfigPanel').style.display='none';
+}
+
+async function loadAdmin(){
+  try{
+    const[sr,er]=await Promise.all([fetch(API+'/api/admin/stats'),fetch(API+'/api/admin/exams?limit=50')]);
+    const s=await sr.json(); const e=await er.json();
+    document.getElementById('statsGrid').innerHTML=`
+      <div class="stat-card"><div class="stat-num">${s.totalExams}</div><div class="stat-label">总考核</div></div>
+      <div class="stat-card"><div class="stat-num">${s.completedExams}</div><div class="stat-label">已完成</div></div>
+      <div class="stat-card"><div class="stat-num">${s.avgScore}</div><div class="stat-label">平均分</div></div>
+      <div class="stat-card"><div class="stat-num">${s.todayExams}</div><div class="stat-label">今日</div></div>`;
+    const gi={优秀:'🟢',良好:'🔵',及格:'🟡',需加强:'🔴'};
+    document.getElementById('examTable').innerHTML=`
+      <table><thead><tr><th>考生</th><th>难度</th><th>场景</th><th>总分</th><th>等级</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+      <tbody>${e.exams.map(ex=>`
+        <tr>
+          <td class="clickable" onclick="viewDetail('${ex.id}')">${esc(ex.trainee_name)}</td>
+          <td>${ex.difficulty==='easy'?'初级':ex.difficulty==='medium'?'中级':'高级'}</td>
+          <td>${JSON.parse(ex.scenarios).length}</td>
+          <td>${ex.overall_score??'-'}</td>
+          <td>${ex.grade?(gi[ex.grade]||'')+ex.grade:'-'}</td>
+          <td>${ex.status==='completed'?'✅':ex.status==='stopped'?'⏹':'🔄'}</td>
+          <td>${new Date(ex.started_at).toLocaleString('zh-CN')}</td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="viewDetail('${ex.id}')">查看</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteExam('${ex.id}')">删除</button>
+          </td>
+        </tr>`).join('')}</tbody></table>
+      ${e.exams.length===0?'<div style="padding:32px;text-align:center;color:var(--text-secondary)">暂无记录</div>':''}`;
+  }catch(e){document.getElementById('examTable').innerHTML='<div style="padding:32px;text-align:center;color:var(--danger)">加载失败: '+e.message+'</div>';}
+}
+
+async function viewDetail(id){
+  try{
+    const r=await fetch(API+'/api/admin/exams/'+id); const d=await r.json();
+    document.getElementById('detailContent').innerHTML=`
+      <h3>📋 ${esc(d.exam.trainee_name)} 的考核详情</h3>
+      <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px">
+        难度：${d.exam.difficulty==='easy'?'初级':d.exam.difficulty==='medium'?'中级':'高级'} |
+        总分：${d.exam.overall_score??'-'} | 等级：${d.exam.grade??'-'} |
+        状态：${d.exam.status==='completed'?'完成':d.exam.status==='stopped'?'提前结束':'进行中'} |
+        ${new Date(d.exam.started_at).toLocaleString('zh-CN')}
+      </p>
+      <h4 style="margin-bottom:6px;font-size:14px">💬 对话记录</h4>
+      <div class="chat-transcript">
+        ${d.messages.map(m=>{
+          const cls=m.role==='sales'?'sales':'customer';
+          const rl=m.role==='sales'?'🧑‍💼 销售':'👤 客户';
+          const si=m.score!==null?` | 评分:${m.score}`:'';
+          return `<div class="transcript-msg ${cls}">
+            <div class="role">${rl} (${m.scenario_id}, 轮${m.round_index})${si}</div>
+            <div class="text">${esc(m.content)}</div>
+            ${m.feedback?`<div class="score-info">💬 ${esc(m.feedback)}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="btn-row">
+        <button class="btn-outline btn-sm" onclick="closeDetail()">关闭</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteExam('${id}');closeDetail();">删除</button>
+      </div>`;
+    document.getElementById('detailModal').classList.add('active');
+  }catch(e){toast('加载失败');}
+}
+function closeDetail(){document.getElementById('detailModal').classList.remove('active');}
+
+async function deleteExam(id){
+  if(!confirm('确定删除？不可恢复。'))return;
+  try{apiAdminDeleteExam(id);loadAdmin();}catch(e){toast('删除失败');}
+}
+
+// ═══════════════════ TOAST ═══════════════════
+function toast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+// ═══════════════════ INIT ═══════════════════
+init();
+loadLlmStatus();
+
+// ═══════════════════ LLM CONFIG ═══════════════════
+async function loadLlmStatus(){
+  try{
+    const r=await fetch(API+'/api/admin/llm-config');
+    const d=await r.json();
+    const badge=document.getElementById('aiModeBadge');
+    if(d.enabled){
+      badge.textContent='🤖 AI驱动 ('+d.provider+')';
+      badge.style.background='rgba(16,185,129,0.3)';
+    }else{
+      badge.textContent='📋 规则模式';
+      badge.style.background='rgba(255,255,255,0.2)';
+    }
+    // 填充配置面板
+    const pp=document.getElementById('llmProvider');
+    if(pp) pp.value=d.provider||'';
+    const ak=document.getElementById('llmApiKey');
+    if(ak) ak.placeholder=d.hasKey?'已配置 (●●●●)':'sk-...';
+    const md=document.getElementById('llmModel');
+    if(md) md.value=d.model||'';
+  }catch(e){}
+}
+
+async function updateLlmConfig(){
+  const provider=document.getElementById('llmProvider').value;
+  const apiKey=document.getElementById('llmApiKey').value;
+  const model=document.getElementById('llmModel').value;
+  const body={};
+  if(provider!==undefined)body.provider=provider;
+  if(apiKey)body.apiKey=apiKey;
+  if(model)body.model=model;
+  try{
+    const r=await fetch(API+'/api/admin/llm-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    const st=document.getElementById('llmStatus');
+    if(d.success){
+      st.innerHTML='✅ 配置已保存 | Provider: <b>'+d.config.provider+'</b> | Model: <b>'+d.config.model+'</b> | 状态: '+(d.config.enabled?'🟢 AI已激活':'🟡 缺少API Key');
+      document.getElementById('llmApiKey').value='';
+      document.getElementById('llmApiKey').placeholder='已保存 (●●●●)';
+      loadLlmStatus();
+    }else{
+      st.innerHTML='❌ 保存失败: '+d.error;
+    }
+  }catch(e){
+    document.getElementById('llmStatus').innerHTML='❌ 网络错误';
+  }
+}
+
+</script>
+</body>
+</html>
