@@ -2553,9 +2553,7 @@ async function startExam(){
   state.difficulty=document.getElementById('difficulty').value;
   state.scenarios=scenarios; state.scenarioIndex=0; state.roundIndex=0; state.scores=[];
   try{
-    const r=await fetch(API+'/api/exam/start',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({traineeName:name,scenarios,difficulty:state.difficulty})});
-    const d=await r.json();
+    const d=await apiExamStart({traineeName:name,scenarios,difficulty:state.difficulty});
     state.examId=d.examId; state.currentScenarioId=d.currentScenario; state.customerType=d.customerType;
     state.trust=d.trust||25; state.intent=d.intent||20;
     document.getElementById('setupScreen').classList.add('hidden');
@@ -2651,9 +2649,7 @@ async function sendMessage(){
   input.value=''; input.style.height='auto';
   addSales(text); state.scores.push(null);
   try{
-    const r=await fetch(API+'/api/exam/message',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({examId:state.examId,scenarioId:state.currentScenarioId,message:text,customerType:state.customerType,roundIndex:state.roundIndex})});
-    const d=await r.json();
+    const d=await apiExamMessage({examId:state.examId,scenarioId:state.currentScenarioId,message:text,customerType:state.customerType,roundIndex:state.roundIndex});
     // Update score tag on last sales message
     const salesMsgs=document.querySelectorAll('#chatMessages .message.sales');
     const last=salesMsgs[salesMsgs.length-1];
@@ -2679,9 +2675,7 @@ async function sendMessage(){
         addSys('📊 本轮均分：'+Math.round(avg),avg>=70?'feedback':'warning');
         setTimeout(async()=>{
           try{
-            const nr=await fetch(API+'/api/exam/next-scenario',{method:'POST',headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({examId:state.examId,currentScenarioIndex:state.scenarioIndex})});
-            const nd=await nr.json();
+    const nd=await apiExamNextScenario({examId:state.examId,currentScenarioIndex:state.scenarioIndex});
             if(nd.allComplete){finishExam();}
             else{
               state.scenarioIndex=nd.scenarioIndex; state.currentScenarioId=nd.scenarioId;
@@ -2711,9 +2705,7 @@ async function stopExam(){
   if(!confirm('确定要停止当前考核吗？已完成的部分会被保存。'))return;
   state.active=false;
   try{
-    const r=await fetch(API+'/api/exam/stop',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({examId:state.examId})});
-    const d=await r.json();
+    const d=apiExamStop(state.examId);
     showReport(d,true);
   }catch(e){toast('停止失败: '+e.message);}
 }
@@ -2722,9 +2714,7 @@ async function stopExam(){
 async function finishExam(){
   state.active=false;
   try{
-    const r=await fetch(API+'/api/exam/finish',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({examId:state.examId})});
-    const d=await r.json();
+    const d=apiExamFinish(state.examId);
     showReport(d,false);
   }catch(e){toast('生成报告失败: '+e.message);}
 }
@@ -2811,8 +2801,7 @@ function showExamEntry(){
 
 async function loadAdmin(){
   try{
-    const[sr,er]=await Promise.all([fetch(API+'/api/admin/stats'),fetch(API+'/api/admin/exams?limit=50')]);
-    const s=await sr.json(); const e=await er.json();
+    const s=apiAdminStats();const e=apiAdminExams();
     document.getElementById('statsGrid').innerHTML=`
       <div class="stat-card"><div class="stat-num">${s.totalExams}</div><div class="stat-label">总考核</div></div>
       <div class="stat-card"><div class="stat-num">${s.completedExams}</div><div class="stat-label">已完成</div></div>
@@ -2841,7 +2830,7 @@ async function loadAdmin(){
 
 async function viewDetail(id){
   try{
-    const r=await fetch(API+'/api/admin/exams/'+id); const d=await r.json();
+    const d=apiAdminExamDetail(id); if(!d){toast('未找到');return;}
     document.getElementById('detailContent').innerHTML=`
       <h3>📋 ${esc(d.exam.trainee_name)} 的考核详情</h3>
       <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px">
@@ -2899,8 +2888,7 @@ function toast(msg){
 // ═══════════════════ LLM CONFIG ═══════════════════
 async function loadLlmStatus(){
   try{
-    const r=await fetch(API+'/api/admin/llm-config');
-    const d=await r.json();
+    const d=getLlmConfig();
     const badge=document.getElementById('aiModeBadge');
     if(d.enabled){
       badge.textContent='🤖 AI驱动 ('+d.provider+')';
@@ -2928,8 +2916,7 @@ async function updateLlmConfig(){
   if(apiKey)body.apiKey=apiKey;
   if(model)body.model=model;
   try{
-    const r=await fetch(API+'/api/admin/llm-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const d=await r.json();
+    const d={success:true,config:updateLlmConfigBrowser(body)};
     const st=document.getElementById('llmStatus');
     if(d.success){
       st.innerHTML='✅ 配置已保存 | Provider: <b>'+d.config.provider+'</b> | Model: <b>'+d.config.model+'</b> | 状态: '+(d.config.enabled?'🟢 AI已激活':'🟡 缺少API Key');
