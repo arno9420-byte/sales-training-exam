@@ -2135,6 +2135,82 @@ async function apiExamNextScenario(params) {
   };
 }
 
+function apiExamStop(examId) {
+  return finishExamLogic(examId, 'stopped');
+}
+
+function apiExamFinish(examId) {
+  return finishExamLogic(examId, 'completed');
+}
+
+function finishExamLogic(examId, status) {
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  if (!exam) throw new Error('考核不存在');
+  const scenarios = JSON.parse(exam.scenarios);
+  const scenarioResults = [];
+  let totalScore = 0, totalMaxScore = 0;
+
+  for (const sid of scenarios) {
+    const msgs = dbAll('SELECT score FROM exam_messages WHERE exam_id = ? AND scenario_id = ? AND role = ? AND score IS NOT NULL',
+      [examId, sid, 'sales']);
+    const scores = msgs.map(m => m.score);
+    const sTotal = scores.reduce((a,b) => a+b, 0);
+    const sMax = scores.length * 100;
+    const pct = sMax > 0 ? Math.round((sTotal / sMax) * 100) : 0;
+    scenarioResults.push({ scenarioId: sid, totalScore: sTotal, maxScore: sMax, percentage: pct, rounds: scores.length });
+    totalScore += sTotal; totalMaxScore += sMax;
+  }
+
+  const overallPct = totalMaxScore > 0 ? Math.round((totalScore / totalMaxScore) * 100) : 0;
+  let grade;
+  if (overallPct >= 90) grade = '优秀';
+  else if (overallPct >= 75) grade = '良好';
+  else if (overallPct >= 60) grade = '及格';
+  else grade = '需加强';
+
+  dbRun('UPDATE exams SET overall_score = ?, grade = ?, finished_at = ?, status = ? WHERE id = ?',
+    [overallPct, grade, new Date().toISOString(), status, examId]);
+
+  clearCustomerState(examId);
+
+  return {
+    examId, traineeName: exam.trainee_name, difficulty: exam.difficulty,
+    overallScore: overallPct, grade, scenarioResults,
+    startedAt: exam.started_at, finishedAt: new Date().toISOString(),
+    stopped: status === 'stopped',
+  };
+}
+
+function apiAdminStats() {
+  const totalExams = dbGet('SELECT COUNT(*) as count FROM exams').count;
+  const completedExams = dbGet("SELECT COUNT(*) as count FROM exams WHERE status = 'completed'").count;
+  const avgScore = dbGet('SELECT ROUND(AVG(CAST(overall_score AS FLOAT))) as avg FROM exams WHERE overall_score IS NOT NULL').avg || 0;
+  const todayExams = dbGet("SELECT COUNT(*) as count FROM exams WHERE date(started_at) = date('now')").count;
+  return { totalExams, completedExams, avgScore, todayExams };
+}
+
+function apiAdminExams(page = 1, limit = 50) {
+  const offset = (page - 1) * limit;
+  const exams = dbAll('SELECT * FROM exams ORDER BY started_at DESC LIMIT ? OFFSET ?', [limit, offset]);
+  const total = dbGet('SELECT COUNT(*) as count FROM exams').count;
+  return { exams, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+}
+
+function apiAdminExamDetail(id) {
+  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [id]);
+  if (!exam) return null;
+  const messages = dbAll('SELECT * FROM exam_messages WHERE exam_id = ? ORDER BY id ASC', [id]);
+  const scenarioScores = dbAll('SELECT * FROM scenario_scores WHERE exam_id = ?', [id]);
+  return { exam, messages, scenarioScores };
+}
+
+function apiAdminDeleteExam(id) {
+  dbRun('DELETE FROM exam_messages WHERE exam_id = ?', [id]);
+  dbRun('DELETE FROM scenario_scores WHERE exam_id = ?', [id]);
+  dbRun('DELETE FROM exam_metrics WHERE exam_id = ?', [id]);
+  dbRun('DELETE FROM exams WHERE id = ?', [id]);
+}
+
 // ══ 规则引擎 Fallback ══
 function generateResponseRules(salesMsg, scenarioId, customerType, roundIndex, historyMsgs, difficulty) {
   const p = PERSONALITIES[customerType];
