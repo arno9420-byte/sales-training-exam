@@ -3414,8 +3414,16 @@ function toast(msg){
 }
 
 // ═══════════════════ INIT ═══════════════════
-init();
-loadLlmStatus();
+(async function bootstrap() {
+  try {
+    await init();
+    loadLlmStatus();
+    console.log('✅ 系统初始化完成');
+  } catch(e) {
+    console.error('❌ 系统初始化失败:', e);
+    document.getElementById('setupScreen').innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)"><h2>⚠️ 初始化失败</h2><p>请刷新页面重试</p><p style="font-size:12px;color:var(--text-secondary)">错误: ' + e.message + '</p></div>';
+  }
+})();
 
 // ═══════════════════ LLM CONFIG ═══════════════════
 async function loadLlmStatus(){
