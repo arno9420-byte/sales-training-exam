@@ -458,7 +458,8 @@ function getGistToken() {
   const fromHash = window.location.hash.replace('#', '');
   if (fromHash && fromHash.startsWith('ghp_')) {
     localStorage.setItem('_gt', fromHash);
-    window.location.hash = '';
+    // 静默清除 hash，不刷新页面
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     return fromHash;
   }
   return '';
