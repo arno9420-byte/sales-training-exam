@@ -322,8 +322,8 @@
       <button class="btn btn-outline btn-sm" id="tabAdmin" onclick="switchLoginMode('admin')">我是管理员</button>
     </div>
     <div class="form-group">
-      <label>📧 邮箱</label>
-      <input type="email" id="loginEmail" placeholder="输入邮箱...">
+      <label>📧 用户名</label>
+      <input type="text" id="loginEmail" placeholder="输入用户名...">
     </div>
     <div class="form-group">
       <label>🔑 密码</label>
@@ -439,7 +439,6 @@
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script>
 
 // ═══════════════════════════════════════════════════════════════
@@ -447,14 +446,46 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════
-//  云端配置 — 替换这里为你自己的 Supabase 项目信息
+//  云端存储 — GitHub Gist
 // ═══════════════════════════════════════════════════════════════
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const GIST_ID = '25e2e29f89420ee083546325807899df';
+const GIST_API = 'https://api.github.com/gists/' + GIST_ID;
+const GIST_RAW = 'https://gist.githubusercontent.com/arno9420-byte/' + GIST_ID + '/raw/db.json';
 
-let supabase = null;
+function getGistToken() {
+  return localStorage.getItem('gist_admin_token') || '';
+}
+function setGistToken(t) {
+  if (t) localStorage.setItem('gist_admin_token', t);
+  else localStorage.removeItem('gist_admin_token');
+}
+
 let cloudMode = false;
-let currentUser = null; // { id, email, role, displayName }
+let currentUser = null; // { id, role, displayName }
+let gistCache = null;
+let gistCacheTime = 0;
+
+async function loadGistData() {
+  const now = Date.now();
+  if (gistCache && (now - gistCacheTime) < 2000) return gistCache;
+  const resp = await fetch(GIST_RAW + '?t=' + now);
+  if (!resp.ok) throw new Error('Gist 加载失败');
+  gistCache = await resp.json();
+  gistCacheTime = now;
+  return gistCache;
+}
+
+async function saveGistData(data) {
+  gistCache = data;
+  gistCacheTime = Date.now();
+  const resp = await fetch(GIST_API, {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + getGistToken(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ files: { 'db.json': { content: JSON.stringify(data) } } })
+  });
+  if (!resp.ok) throw new Error('Gist 保存失败: ' + resp.status);
+  return true;
+}
 
 // ── SQLite via sql.js (loaded from CDN) — 本地回退 ──
 let SQL = null;
@@ -505,209 +536,106 @@ function saveDb() {
   catch(e) { console.warn('Failed to save DB to localStorage:', e.message); }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  Supabase 初始化与认证
-// ═══════════════════════════════════════════════════════════════
-async function initSupabase() {
-  if (!window.supabase || !window.supabase.createClient) return false;
-  if (SUPABASE_URL.includes('YOUR_PROJECT_ID') || SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')) {
-    console.log('[Supabase] 未配置，使用本地模式');
-    return false;
-  }
-  try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
-    });
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) await setCurrentUser(session.user);
-    cloudMode = true;
-    return true;
-  } catch (e) {
-    console.error('[Supabase] 初始化失败:', e.message);
-    supabase = null;
-    cloudMode = false;
-    return false;
-  }
-}
-
-async function setCurrentUser(authUser) {
-  if (!authUser) { currentUser = null; return; }
-  try {
-    const { data, error } = await supabase.from('app_users').select('*').eq('user_id', authUser.id).single();
-    if (error || !data) {
-      // 没有 app_users 记录，默认当作考生
-      currentUser = { id: authUser.id, email: authUser.email, role: 'examinee', displayName: authUser.user_metadata?.display_name || authUser.email };
-    } else {
-      currentUser = { id: authUser.id, email: authUser.email, role: data.role, displayName: data.display_name };
-    }
-  } catch (e) {
-    currentUser = { id: authUser.id, email: authUser.email, role: 'examinee', displayName: authUser.email };
-  }
-}
-
-async function login(email, password) {
-  if (!supabase) throw new Error('云端服务未配置');
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  await setCurrentUser(data.user);
-  return currentUser;
-}
-
-async function logout() {
-  if (supabase) await supabase.auth.signOut();
-  currentUser = null;
-  showLoginScreen();
-}
-
-async function signupAdmin(email, password, displayName) {
-  if (!supabase) throw new Error('云端服务未配置');
-  const { data, error } = await supabase.auth.signUp({
-    email, password,
-    options: { data: { display_name: displayName } }
-  });
-  if (error) throw error;
-  // 写入 app_users 标记为管理员
-  const { error: dbError } = await supabase.from('app_users').insert({
-    user_id: data.user.id, display_name: displayName, role: 'admin'
-  });
-  if (dbError) throw dbError;
-  await setCurrentUser(data.user);
-  return currentUser;
-}
-
-async function createExamineeAccount(email, password, displayName) {
-  if (!supabase) throw new Error('云端服务未配置');
-  if (!currentUser || currentUser.role !== 'admin') throw new Error('只有管理员可以创建考生账号');
-  const { data, error } = await supabase.auth.signUp({
-    email, password,
-    options: { data: { display_name: displayName } }
-  });
-  if (error) throw error;
-  const { error: dbError } = await supabase.from('app_users').insert({
-    user_id: data.user.id, display_name: displayName, role: 'examinee'
-  });
-  if (dbError) throw dbError;
-  return { email, password, displayName };
-}
-
-function generateTempPassword() {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let pw = '';
-  for (let i = 0; i < 8; i++) pw += chars[Math.floor(Math.random() * chars.length)];
-  return pw;
-}
-
-function dbRun(sql, params = []) {
-  db.run(sql, params);
-  saveDb();
-}
+function dbRun(sql, params = []) { db.run(sql, params); saveDb(); }
 
 function dbGet(sql, params = []) {
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
+  const stmt = db.prepare(sql); stmt.bind(params);
   if (stmt.step()) {
-    const cols = stmt.getColumnNames();
-    const vals = stmt.get();
-    const row = {};
-    cols.forEach((c, i) => row[c] = vals[i]);
-    stmt.free();
-    return row;
+    const cols = stmt.getColumnNames(); const vals = stmt.get();
+    const row = {}; cols.forEach((c, i) => row[c] = vals[i]);
+    stmt.free(); return row;
   }
-  stmt.free();
-  return null;
+  stmt.free(); return null;
 }
 
 function dbAll(sql, params = []) {
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
+  const stmt = db.prepare(sql); stmt.bind(params);
   const rows = [];
   while (stmt.step()) {
-    const cols = stmt.getColumnNames();
-    const vals = stmt.get();
-    const row = {};
-    cols.forEach((c, i) => row[c] = vals[i]);
+    const cols = stmt.getColumnNames(); const vals = stmt.get();
+    const row = {}; cols.forEach((c, i) => row[c] = vals[i]);
     rows.push(row);
   }
-  stmt.free();
-  return rows;
+  stmt.free(); return rows;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  数据访问抽象层：云端优先，本地回退
+//  Gist 云端数据访问层
 // ═══════════════════════════════════════════════════════════════
 const dataLayer = {
-  enabled: () => cloudMode && supabase && currentUser,
+  enabled: () => cloudMode && currentUser,
+
+  _db() { return loadGistData(); },
+
+  async _save(db) {
+    await saveGistData(db);
+  },
 
   async insertExam(row) {
     if (!this.enabled()) {
-      const cols = Object.keys(row).join(',');
-      const placeholders = Object.keys(row).map(() => '?').join(',');
-      dbRun(`INSERT INTO exams (${cols}) VALUES (${placeholders})`, Object.values(row));
+      dbRun('INSERT INTO exams (id, trainee_name, difficulty, scenarios, overall_score, grade, started_at, finished_at, status) VALUES (?,?,?,?,?,?,?,?,?)',
+        [row.id, row.trainee_name, row.difficulty, row.scenarios, row.overall_score||null, row.grade||null, row.started_at, row.finished_at||null, row.status||'in_progress']);
       return;
     }
-    const payload = { ...row };
-    if (currentUser) payload.user_id = currentUser.id;
-    const { error } = await supabase.from('exams').insert(payload);
-    if (error) throw error;
+    const db = await this._db();
+    db.exams.push({ ...row, userId: currentUser.id });
+    await this._save(db);
   },
 
   async updateExam(id, fields) {
     if (!this.enabled()) {
-      const setClause = Object.keys(fields).map(k => `${k} = ?`).join(',');
+      const keys = Object.keys(fields);
+      const setClause = keys.map(k => `${k} = ?`).join(',');
       dbRun(`UPDATE exams SET ${setClause} WHERE id = ?`, [...Object.values(fields), id]);
       return;
     }
-    const { error } = await supabase.from('exams').update(fields).eq('id', id);
-    if (error) throw error;
+    const db = await this._db();
+    const exam = db.exams.find(e => e.id === id);
+    if (exam) Object.assign(exam, fields);
+    await this._save(db);
   },
 
   async getExam(id) {
     if (!this.enabled()) return dbGet('SELECT * FROM exams WHERE id = ?', [id]);
-    const { data, error } = await supabase.from('exams').select('*').eq('id', id).single();
-    if (error) throw error;
-    return data;
+    const db = await this._db();
+    return db.exams.find(e => e.id === id) || null;
   },
 
   async listExams(filters = {}) {
     if (!this.enabled()) {
-      const where = [];
-      const params = [];
+      const where = []; const params = [];
       if (filters.userId) { where.push('user_id = ?'); params.push(filters.userId); }
       if (filters.traineeName) { where.push('trainee_name = ?'); params.push(filters.traineeName); }
       const sql = 'SELECT * FROM exams' + (where.length ? ' WHERE ' + where.join(' AND ') : '') + ' ORDER BY started_at DESC';
       return dbAll(sql, params);
     }
-    let q = supabase.from('exams').select('*', { count: 'exact' }).order('started_at', { ascending: false });
-    if (filters.userId) q = q.eq('user_id', filters.userId);
-    if (filters.traineeName) q = q.eq('trainee_name', filters.traineeName);
-    const { data, error } = await q;
-    if (error) throw error;
-    return data || [];
+    const db = await this._db();
+    let exams = db.exams;
+    if (filters.userId) exams = exams.filter(e => e.userId === filters.userId);
+    if (filters.traineeName) exams = exams.filter(e => e.trainee_name === filters.traineeName);
+    return exams.sort((a,b) => (b.started_at||'').localeCompare(a.started_at||''));
   },
 
   async insertMessage(row) {
     if (!this.enabled()) {
-      const cols = Object.keys(row).join(',');
-      const placeholders = Object.keys(row).map(() => '?').join(',');
-      dbRun(`INSERT INTO exam_messages (${cols}) VALUES (${placeholders})`, Object.values(row));
+      dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content, score, feedback, score_details) VALUES (?,?,?,?,?,?,?,?)',
+        [row.exam_id, row.scenario_id, row.round_index, row.role, row.content, row.score||null, row.feedback||null, row.score_details||null]);
       return;
     }
-    const { error } = await supabase.from('exam_messages').insert(row);
-    if (error) throw error;
+    const db = await this._db();
+    row.id = (db.messages.length + 1);
+    row.created_at = row.created_at || new Date().toISOString();
+    db.messages.push(row);
+    await this._save(db);
   },
 
   async getMessages(examId, scenarioId) {
     if (!this.enabled()) {
-      if (scenarioId) {
-        return dbAll('SELECT * FROM exam_messages WHERE exam_id = ? AND scenario_id = ? ORDER BY id', [examId, scenarioId]);
-      }
+      if (scenarioId) return dbAll('SELECT * FROM exam_messages WHERE exam_id = ? AND scenario_id = ? ORDER BY id', [examId, scenarioId]);
       return dbAll('SELECT * FROM exam_messages WHERE exam_id = ? ORDER BY id', [examId]);
     }
-    let q = supabase.from('exam_messages').select('*').eq('exam_id', examId).order('id');
-    if (scenarioId) q = q.eq('scenario_id', scenarioId);
-    const { data, error } = await q;
-    if (error) throw error;
-    return data || [];
+    const db = await this._db();
+    return db.messages.filter(m => m.exam_id === examId && (!scenarioId || m.scenario_id === scenarioId)).sort((a,b) => (a.id||0)-(b.id||0));
   },
 
   async getSalesScores(examId, scenarioId) {
@@ -715,39 +643,40 @@ const dataLayer = {
       return dbAll('SELECT score FROM exam_messages WHERE exam_id = ? AND scenario_id = ? AND role = ? AND score IS NOT NULL',
         [examId, scenarioId, 'sales']);
     }
-    const { data, error } = await supabase.from('exam_messages')
-      .select('score').eq('exam_id', examId).eq('scenario_id', scenarioId).eq('role', 'sales').not('score', 'is', null);
-    if (error) throw error;
-    return data || [];
+    const db = await this._db();
+    return db.messages.filter(m => m.exam_id === examId && m.scenario_id === scenarioId && m.role === 'sales' && m.score != null);
   },
 
   async insertMetric(row) {
     if (!this.enabled()) {
-      const cols = Object.keys(row).join(',');
-      const placeholders = Object.keys(row).map(() => '?').join(',');
-      dbRun(`INSERT INTO exam_metrics (${cols}) VALUES (${placeholders})`, Object.values(row));
+      dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?,?,?,?,?,?,?)',
+        [row.exam_id, row.scenario_id, row.round_index, row.trust_level, row.intent_level, row.trust_delta, row.intent_delta]);
       return;
     }
-    const { error } = await supabase.from('exam_metrics').insert(row);
-    if (error) throw error;
+    const db = await this._db();
+    if (!db.metrics) db.metrics = [];
+    db.metrics.push(row);
+    await this._save(db);
   },
 
   async insertScenarioScore(row) {
     if (!this.enabled()) {
-      const cols = Object.keys(row).join(',');
-      const placeholders = Object.keys(row).map(() => '?').join(',');
-      dbRun(`INSERT INTO scenario_scores (${cols}) VALUES (${placeholders})`, Object.values(row));
+      dbRun('INSERT INTO scenario_scores (exam_id, scenario_id, total_score, max_score, percentage) VALUES (?,?,?,?,?)',
+        [row.exam_id, row.scenario_id, row.total_score, row.max_score, row.percentage]);
       return;
     }
-    const { error } = await supabase.from('scenario_scores').insert(row);
-    if (error) throw error;
+    const db = await this._db();
+    if (!db.scores) db.scores = [];
+    const existing = db.scores.find(s => s.exam_id === row.exam_id && s.scenario_id === row.scenario_id);
+    if (existing) Object.assign(existing, row);
+    else db.scores.push(row);
+    await this._save(db);
   },
 
   async getScenarioScores(examId) {
     if (!this.enabled()) return dbAll('SELECT * FROM scenario_scores WHERE exam_id = ?', [examId]);
-    const { data, error } = await supabase.from('scenario_scores').select('*').eq('exam_id', examId);
-    if (error) throw error;
-    return data || [];
+    const db = await this._db();
+    return (db.scores || []).filter(s => s.exam_id === examId);
   },
 
   async deleteExam(id) {
@@ -758,10 +687,48 @@ const dataLayer = {
       dbRun('DELETE FROM exams WHERE id = ?', [id]);
       return;
     }
-    const { error } = await supabase.from('exams').delete().eq('id', id);
-    if (error) throw error;
+    const db = await this._db();
+    db.exams = db.exams.filter(e => e.id !== id);
+    db.messages = db.messages.filter(m => m.exam_id !== id);
+    db.scores = (db.scores || []).filter(s => s.exam_id !== id);
+    db.metrics = (db.metrics || []).filter(m => m.exam_id !== id);
+    await this._save(db);
   }
 };
+
+// ═══════════════════════════════════════════════════════════════
+//  认证系统（基于 Gist 用户列表）
+// ═══════════════════════════════════════════════════════════════
+async function login(username, password) {
+  const db = await loadGistData();
+  const user = (db.users || []).find(u => u.id === username && u.password === password);
+  if (!user) throw new Error('用户名或密码错误');
+  currentUser = { id: user.id, role: user.role, displayName: user.displayName };
+  cloudMode = true;
+  return currentUser;
+}
+
+function logout() {
+  currentUser = null;
+  cloudMode = false;
+  showLoginScreen();
+}
+
+async function createUser(id, password, displayName, role) {
+  if (!currentUser || currentUser.role !== 'admin') throw new Error('只有管理员可以创建账号');
+  const db = await loadGistData();
+  if (db.users.find(u => u.id === id)) throw new Error('账号已存在');
+  db.users.push({ id, password, displayName, role });
+  await saveGistData(db);
+  return { id, password, displayName, role };
+}
+
+function generateTempPassword() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let pw = '';
+  for (let i = 0; i < 8; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  return pw;
+}
 
 // ── UUID generator (browser-compatible) ──
 function generateUUID() {
@@ -801,25 +768,16 @@ function getLlmConfig() {
 }
 
 async function loadLlmConfigFromCloud() {
-  // 本地回退：尝试从 localStorage 读取旧配置
-  if (!cloudMode || !supabase) {
-    llmConfig.provider = localStorage.getItem('llm_provider') || '';
-    llmConfig.apiKey = localStorage.getItem('llm_api_key') || '';
-    llmConfig.model = localStorage.getItem('llm_model') || '';
-    llmConfig.enabled = !!llmConfig.apiKey;
-    return getLlmConfig();
-  }
   try {
-    const { data, error } = await supabase.from('app_config').select('value').eq('key', 'llm_config').single();
-    if (error || !data) throw error || new Error('未找到配置');
-    const cfg = data.value || {};
+    const db = await loadGistData();
+    const cfg = db.llmConfig || {};
     llmConfig.provider = cfg.provider || '';
     llmConfig.apiKey = cfg.apiKey || '';
     llmConfig.model = cfg.model || '';
     llmConfig.enabled = !!llmConfig.apiKey;
     llmConfig.consecutiveFailures = 0;
   } catch (e) {
-    console.warn('[LLM] 从云端加载配置失败，使用本地回退:', e.message);
+    console.warn('[LLM] 从云端加载配置失败:', e.message);
     llmConfig.provider = localStorage.getItem('llm_provider') || '';
     llmConfig.apiKey = localStorage.getItem('llm_api_key') || '';
     llmConfig.model = localStorage.getItem('llm_model') || '';
@@ -837,24 +795,26 @@ async function updateLlmConfigBrowser(newConfig) {
   if (newConfig.model !== undefined) llmConfig.model = newConfig.model;
   llmConfig.consecutiveFailures = 0;
 
-  if (cloudMode && supabase) {
-    // 仅管理员可写
-    if (!currentUser || currentUser.role !== 'admin') {
-      throw new Error('只有管理员可以修改大模型配置');
+  if (currentUser && currentUser.role === 'admin') {
+    // 仅管理员可写入云端
+    if (currentUser.role !== 'admin') throw new Error('只有管理员可以修改大模型配置');
+    try {
+      const db = await loadGistData();
+      db.llmConfig = {
+        provider: llmConfig.provider,
+        apiKey: llmConfig.apiKey,
+        model: llmConfig.model,
+        enabled: llmConfig.enabled
+      };
+      await saveGistData(db);
+    } catch(e) {
+      console.warn('[LLM] 云端保存失败，回退本地:', e.message);
     }
-    const payload = {
-      key: 'llm_config',
-      value: { provider: llmConfig.provider, apiKey: llmConfig.apiKey, model: llmConfig.model },
-      updated_at: new Date().toISOString()
-    };
-    const { error } = await supabase.from('app_config').upsert(payload, { onConflict: 'key' });
-    if (error) throw error;
-  } else {
-    // 本地回退
-    if (newConfig.provider !== undefined) localStorage.setItem('llm_provider', newConfig.provider);
-    if (newConfig.apiKey !== undefined) localStorage.setItem('llm_api_key', newConfig.apiKey);
-    if (newConfig.model !== undefined) localStorage.setItem('llm_model', newConfig.model);
   }
+  // 本地回退
+  if (newConfig.provider !== undefined) localStorage.setItem('llm_provider', newConfig.provider);
+  if (newConfig.apiKey !== undefined) localStorage.setItem('llm_api_key', newConfig.apiKey);
+  if (newConfig.model !== undefined) localStorage.setItem('llm_model', newConfig.model);
   return getLlmConfig();
 }
 
@@ -2915,23 +2875,14 @@ let loginMode = 'examinee';
 
 // ═══════════════════ AUTH UI ═══════════════════
 function applyAuthUI() {
-  const isCloudConfigured = cloudMode && supabase;
+  // Gist 方案始终可用，始终显示登录界面
   const localModeTip = document.getElementById('localModeTip');
-  if (localModeTip) localModeTip.style.display = isCloudConfigured ? 'none' : 'block';
-
-  // 如果未配置 Supabase，跳过登录，直接进入考核界面（兼容旧版本）
-  if (!isCloudConfigured) {
-    showSetupScreen();
-    document.getElementById('adminLink').classList.remove('hidden');
-    document.getElementById('logoutLink').classList.add('hidden');
-    document.getElementById('userBadge').classList.add('hidden');
-    return;
-  }
+  if (localModeTip) localModeTip.style.display = 'none';
 
   if (currentUser) {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('userBadge').classList.remove('hidden');
-    document.getElementById('userBadge').textContent = currentUser.role === 'admin' ? '👤 管理员' : '👤 ' + (currentUser.displayName || currentUser.email);
+    document.getElementById('userBadge').textContent = currentUser.role === 'admin' ? '👤 管理员' : '👤 ' + (currentUser.displayName || currentUser.id);
     document.getElementById('logoutLink').classList.remove('hidden');
     if (currentUser.role === 'admin') {
       document.getElementById('adminLink').classList.remove('hidden');
@@ -2980,37 +2931,35 @@ function switchLoginMode(mode) {
 }
 
 async function handleLoginClick() {
-  const email = document.getElementById('loginEmail').value.trim();
+  const username = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  if (!email || !password) { toast('请输入邮箱和密码'); return; }
-
-  if (!cloudMode || !supabase) {
-    toast('当前为本地模式，无需登录');
-    showSetupScreen();
-    return;
-  }
+  if (!username || !password) { toast('请输入用户名和密码'); return; }
 
   try {
     if (loginMode === 'admin') {
-      // 尝试登录，失败则注册
+      // 尝试登录管理员
       try {
-        await login(email, password);
+        await login(username, password);
       } catch (loginErr) {
-        const name = document.getElementById('adminName').value.trim() || email.split('@')[0];
-        await signupAdmin(email, password, name);
+        // 登录失败，尝试注册首个管理员（如果还没有管理员）
+        const name = document.getElementById('adminName').value.trim() || username;
+        const db = await loadGistData();
+        if (!db.users.find(u => u.role === 'admin')) {
+          db.users.push({ id: username, password, displayName: name, role: 'admin' });
+          await saveGistData(db);
+          currentUser = { id: username, role: 'admin', displayName: name };
+          cloudMode = true;
+        } else {
+          throw new Error('用户名或密码错误，或已有管理员');
+        }
       }
-      if (currentUser.role !== 'admin') {
+      if (!currentUser || currentUser.role !== 'admin') {
         toast('该账号不是管理员');
         await logout();
         return;
       }
     } else {
-      await login(email, password);
-      if (currentUser.role !== 'examinee') {
-        toast('请使用考生账号登录');
-        await logout();
-        return;
-      }
+      await login(username, password);
     }
     applyAuthUI();
     toast('登录成功');
@@ -3020,12 +2969,17 @@ async function handleLoginClick() {
 }
 
 async function handleSetupAdminClick() {
-  const email = document.getElementById('loginEmail').value.trim();
+  const username = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  const name = document.getElementById('adminName').value.trim() || email.split('@')[0];
-  if (!email || !password) { toast('请输入邮箱和密码'); return; }
+  const name = document.getElementById('adminName').value.trim() || username;
+  if (!username || !password) { toast('请输入用户名和密码'); return; }
   try {
-    await signupAdmin(email, password, name);
+    const db = await loadGistData();
+    if (db.users.find(u => u.id === username)) { toast('账号已存在'); return; }
+    db.users.push({ id: username, password, displayName: name, role: 'admin' });
+    await saveGistData(db);
+    currentUser = { id: username, role: 'admin', displayName: name };
+    cloudMode = true;
     applyAuthUI();
     toast('管理员注册成功');
   } catch (e) {
@@ -3392,7 +3346,7 @@ function closeReport(){document.getElementById('reportOverlay').classList.remove
 
 // ═══════════════════ ADMIN ═══════════════════
 async function showAdmin(){
-  if (cloudMode && supabase && (!currentUser || currentUser.role !== 'admin')) {
+  if (!currentUser || currentUser.role !== 'admin') {
     toast('需要管理员权限');
     showLoginScreen();
     return;
@@ -3429,13 +3383,22 @@ async function loadAdmin(){
       <div class="stat-card"><div class="stat-num">${s.todayExams}</div><div class="stat-label">今日</div></div>`;
     const gi={优秀:'🟢',良好:'🔵',及格:'🟡',需加强:'🔴'};
 
-    // 管理员账号创建区域
-    const createAccountHtml = (cloudMode && supabase) ? `
+    // 管理员账号创建区域 + Token 配置
+    const tokenConfigured = !!getGistToken();
+    const createAccountHtml = currentUser && currentUser.role === 'admin' ? `
+      <div style="background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
+        <h3 style="font-size:15px;color:var(--primary);margin-bottom:12px;">🔑 GitHub Token 配置</h3>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;">
+          <input type="password" id="gistTokenInput" placeholder="${tokenConfigured ? '已配置 (●●●●)' : '粘贴 GitHub Token...'}" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+          <button class="btn btn-primary btn-sm" onclick="handleSaveToken()" style="white-space:nowrap;">💾 保存</button>
+        </div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-secondary);">需要 GitHub Personal Access Token，权限勾选 gist。${tokenConfigured ? '✅ 已配置' : '⚠️ 未配置则无法写入云端数据'}</div>
+      </div>
       <div style="background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <h3 style="font-size:15px;color:var(--primary);margin-bottom:12px;">➕ 创建考生账号</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
-          <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">考生邮箱</label>
-            <input type="email" id="newExamineeEmail" placeholder="examinee@example.com" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+          <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">考生用户名</label>
+            <input type="text" id="newExamineeEmail" placeholder="用户名" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
           <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">考生姓名</label>
             <input type="text" id="newExamineeName" placeholder="姓名" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
           <div style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-sm" onclick="handleCreateExaminee()" style="width:100%;">🎲 生成并创建</button></div>
@@ -3465,17 +3428,28 @@ async function loadAdmin(){
 }
 
 async function handleCreateExaminee() {
-  const email = document.getElementById('newExamineeEmail').value.trim();
+  const id = document.getElementById('newExamineeEmail').value.trim();
   const name = document.getElementById('newExamineeName').value.trim();
-  if (!email || !name) { toast('请输入邮箱和姓名'); return; }
+  if (!id || !name) { toast('请输入用户名和姓名'); return; }
+  if (!getGistToken()) { toast('请先配置 GitHub Token'); return; }
   const password = generateTempPassword();
   try {
-    const result = await createExamineeAccount(email, password, name);
+    const result = await createUser(id, password, name, 'examinee');
     document.getElementById('newAccountResult').innerHTML =
-      `✅ 已创建：${esc(result.email)} | 密码：<b>${esc(result.password)}</b>（请复制保存）`;
+      `✅ 已创建：用户名 <b>${esc(result.id)}</b> | 密码：<b>${esc(result.password)}</b>（请复制保存）`;
   } catch (e) {
     toast('创建失败: ' + e.message);
   }
+}
+
+function handleSaveToken() {
+  const t = document.getElementById('gistTokenInput').value.trim();
+  if (!t) { toast('请输入 Token'); return; }
+  setGistToken(t);
+  document.getElementById('gistTokenInput').value = '';
+  document.getElementById('gistTokenInput').placeholder = '已配置 (●●●●)';
+  toast('Token 已保存');
+  loadAdmin();
 }
 
 async function viewDetail(id){
@@ -3527,7 +3501,6 @@ function toast(msg){
 (async function bootstrap() {
   try {
     await initDatabase();
-    await initSupabase();
     await loadLlmConfigFromCloud();
     await init();
     applyAuthUI();
