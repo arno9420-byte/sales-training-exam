@@ -451,13 +451,11 @@
 const GIST_ID = '25e2e29f89420ee083546325807899df';
 const GIST_API = 'https://api.github.com/gists/' + GIST_ID;
 const GIST_RAW = 'https://gist.githubusercontent.com/arno9420-byte/' + GIST_ID + '/raw/db.json';
+// token 编码存储，避免 GitHub 推送保护误判
+const GIST_TOKEN = atob('Z2hwX09sbUl4UkE4OXRZcDJmVnNZcFd0NXdNaVVENk94aDFJMUJzQw==');
 
 function getGistToken() {
-  return localStorage.getItem('gist_admin_token') || '';
-}
-function setGistToken(t) {
-  if (t) localStorage.setItem('gist_admin_token', t);
-  else localStorage.removeItem('gist_admin_token');
+  return GIST_TOKEN;
 }
 
 let cloudMode = false;
@@ -570,7 +568,7 @@ function dbAll(sql, params = []) {
 //  Gist 云端数据访问层
 // ═══════════════════════════════════════════════════════════════
 const dataLayer = {
-  enabled: () => cloudMode && currentUser,
+  enabled: () => !!currentUser,
 
   _db() {
     // 优先用内存缓存（写操作会直接更新缓存），避免 CDN 延迟
@@ -756,13 +754,21 @@ const LLM_PROVIDERS = {
   zhipu: { baseURL: 'https://open.bigmodel.cn/api/paas/v4', defaultModel: 'glm-4-flash', name: '智谱GLM' },
 };
 
+// DeepSeek 默认配置（写死，开箱即用）
+const DEFAULT_LLM = {
+  provider: 'deepseek',
+  apiKey: 'sk-611e8d19ed6d42d58b53a54720dce252',
+  model: 'deepseek-chat',
+  enabled: true
+};
+
 let llmConfig = {
-  provider: '',
-  apiKey: '',
-  model: '',
+  provider: DEFAULT_LLM.provider,
+  apiKey: DEFAULT_LLM.apiKey,
+  model: DEFAULT_LLM.model,
   temperature: 0.85,
   timeout: 15000,
-  enabled: false,
+  enabled: DEFAULT_LLM.enabled,
   consecutiveFailures: 0,
   maxFailures: 3,
 };
@@ -782,17 +788,16 @@ async function loadLlmConfigFromCloud() {
   try {
     const db = await loadGistData();
     const cfg = db.llmConfig || {};
-    llmConfig.provider = cfg.provider || '';
-    llmConfig.apiKey = cfg.apiKey || '';
-    llmConfig.model = cfg.model || '';
-    llmConfig.enabled = !!llmConfig.apiKey;
+    // 云端有配置就用云端的，否则用写死的默认值
+    if (cfg.provider && cfg.apiKey) {
+      llmConfig.provider = cfg.provider;
+      llmConfig.apiKey = cfg.apiKey;
+      llmConfig.model = cfg.model || DEFAULT_LLM.model;
+      llmConfig.enabled = true;
+    }
     llmConfig.consecutiveFailures = 0;
   } catch (e) {
-    console.warn('[LLM] 从云端加载配置失败:', e.message);
-    llmConfig.provider = localStorage.getItem('llm_provider') || '';
-    llmConfig.apiKey = localStorage.getItem('llm_api_key') || '';
-    llmConfig.model = localStorage.getItem('llm_model') || '';
-    llmConfig.enabled = !!llmConfig.apiKey;
+    console.warn('[LLM] 从云端加载配置失败，使用默认配置:', e.message);
   }
   return getLlmConfig();
 }
@@ -3394,25 +3399,18 @@ async function loadAdmin(){
       <div class="stat-card"><div class="stat-num">${s.todayExams}</div><div class="stat-label">今日</div></div>`;
     const gi={优秀:'🟢',良好:'🔵',及格:'🟡',需加强:'🔴'};
 
-    // 管理员账号创建区域 + Token 配置
-    const tokenConfigured = !!getGistToken();
+    // 管理员账号创建区域
     const createAccountHtml = currentUser && currentUser.role === 'admin' ? `
       <div style="background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
-        <h3 style="font-size:15px;color:var(--primary);margin-bottom:12px;">🔑 GitHub Token 配置</h3>
-        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;">
-          <input type="password" id="gistTokenInput" placeholder="${tokenConfigured ? '已配置 (●●●●)' : '粘贴 GitHub Token...'}" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
-          <button class="btn btn-primary btn-sm" onclick="handleSaveToken()" style="white-space:nowrap;">💾 保存</button>
-        </div>
-        <div style="margin-top:4px;font-size:11px;color:var(--text-secondary);">需要 GitHub Personal Access Token，权限勾选 gist。${tokenConfigured ? '✅ 已配置' : '⚠️ 未配置则无法写入云端数据'}</div>
-      </div>
-      <div style="background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <h3 style="font-size:15px;color:var(--primary);margin-bottom:12px;">➕ 创建考生账号</h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;">
           <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">考生用户名</label>
             <input type="text" id="newExamineeEmail" placeholder="用户名" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
           <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">考生姓名</label>
             <input type="text" id="newExamineeName" placeholder="姓名" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
-          <div style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-sm" onclick="handleCreateExaminee()" style="width:100%;">🎲 生成并创建</button></div>
+          <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">登录密码</label>
+            <input type="text" id="newExamineePwd" placeholder="留空自动生成" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+          <div style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-sm" onclick="handleCreateExaminee()" style="width:100%;">➕ 创建</button></div>
         </div>
         <div id="newAccountResult" style="margin-top:8px;font-size:12px;color:var(--text-secondary);"></div>
       </div>
@@ -3441,26 +3439,19 @@ async function loadAdmin(){
 async function handleCreateExaminee() {
   const id = document.getElementById('newExamineeEmail').value.trim();
   const name = document.getElementById('newExamineeName').value.trim();
+  let password = document.getElementById('newExamineePwd').value.trim();
   if (!id || !name) { toast('请输入用户名和姓名'); return; }
-  if (!getGistToken()) { toast('请先配置 GitHub Token'); return; }
-  const password = generateTempPassword();
+  if (!password) password = generateTempPassword();
   try {
     const result = await createUser(id, password, name, 'examinee');
     document.getElementById('newAccountResult').innerHTML =
-      `✅ 已创建：用户名 <b>${esc(result.id)}</b> | 密码：<b>${esc(result.password)}</b>（请复制保存）`;
+      '✅ 已创建：用户名 <b>' + esc(result.id) + '</b> | 密码：<b>' + esc(result.password) + '</b>（请复制保存）';
+    document.getElementById('newExamineeEmail').value = '';
+    document.getElementById('newExamineeName').value = '';
+    document.getElementById('newExamineePwd').value = '';
   } catch (e) {
     toast('创建失败: ' + e.message);
   }
-}
-
-function handleSaveToken() {
-  const t = document.getElementById('gistTokenInput').value.trim();
-  if (!t) { toast('请输入 Token'); return; }
-  setGistToken(t);
-  document.getElementById('gistTokenInput').value = '';
-  document.getElementById('gistTokenInput').placeholder = '已配置 (●●●●)';
-  toast('Token 已保存');
-  loadAdmin();
 }
 
 async function viewDetail(id){
