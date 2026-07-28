@@ -451,11 +451,17 @@
 const GIST_ID = '25e2e29f89420ee083546325807899df';
 const GIST_API = 'https://api.github.com/gists/' + GIST_ID;
 const GIST_RAW = 'https://gist.githubusercontent.com/arno9420-byte/' + GIST_ID + '/raw/db.json';
-// token 编码存储，避免 GitHub 推送保护误判
-const GIST_TOKEN = atob('Z2hwX09sbUl4UkE4OXRZcDJmVnNZcFd0NXdNaVVENk94aDFJMUJzQw==');
-
+// Token 从 URL hash 读取（首次访问在网址后加 #你的token），之后存 localStorage
 function getGistToken() {
-  return GIST_TOKEN;
+  const fromLS = localStorage.getItem('_gt');
+  if (fromLS) return fromLS;
+  const fromHash = window.location.hash.replace('#', '');
+  if (fromHash && fromHash.startsWith('ghp_')) {
+    localStorage.setItem('_gt', fromHash);
+    window.location.hash = '';
+    return fromHash;
+  }
+  return '';
 }
 
 let cloudMode = false;
