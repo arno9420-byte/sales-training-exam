@@ -467,8 +467,9 @@ let gistCacheTime = 0;
 
 async function loadGistData() {
   const now = Date.now();
-  if (gistCache && (now - gistCacheTime) < 2000) return gistCache;
-  const resp = await fetch(GIST_RAW + '?t=' + now);
+  if (gistCache && (now - gistCacheTime) < 5000) return gistCache;
+  // 加上随机参数绕过 CDN 缓存
+  const resp = await fetch(GIST_RAW + '?t=' + now + '&r=' + Math.random());
   if (!resp.ok) throw new Error('Gist 加载失败');
   gistCache = await resp.json();
   gistCacheTime = now;
@@ -485,6 +486,12 @@ async function saveGistData(data) {
   });
   if (!resp.ok) throw new Error('Gist 保存失败: ' + resp.status);
   return true;
+}
+
+// 强制刷新缓存（写入后调用）
+async function refreshGistCache() {
+  gistCacheTime = 0; // 清缓存
+  await loadGistData();
 }
 
 // ── SQLite via sql.js (loaded from CDN) — 本地回退 ──
@@ -565,7 +572,11 @@ function dbAll(sql, params = []) {
 const dataLayer = {
   enabled: () => cloudMode && currentUser,
 
-  _db() { return loadGistData(); },
+  _db() {
+    // 优先用内存缓存（写操作会直接更新缓存），避免 CDN 延迟
+    if (gistCache) return Promise.resolve(gistCache);
+    return loadGistData();
+  },
 
   async _save(db) {
     await saveGistData(db);
