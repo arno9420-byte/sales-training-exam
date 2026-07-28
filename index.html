@@ -282,6 +282,8 @@
   @keyframes bounce { 0%,60%,100%{transform:translateY(0);} 30%{transform:translateY(-5px);} }
 
   .hidden { display:none !important; }
+  .tab-active { background:var(--primary) !important; color:#fff !important; border-color:var(--primary) !important; }
+  .examinee-report-btn { background:#EEF3FB; color:var(--primary); padding:8px 14px; border-radius:20px; font-size:13px; font-weight:600; margin-top:12px; display:inline-block; cursor:pointer; }
 
   /* Toast */
   .toast {
@@ -305,9 +307,36 @@
     </div>
     <div class="header-right">
       <span class="badge" id="headerBadge">🏢 跨洋狮</span>
-      <a href="#" class="nav-link" onclick="showAdmin()" id="adminLink">📊 后台</a>
+      <span class="badge hidden" id="userBadge" style="background:rgba(255,255,255,0.15);"></span>
+      <a href="#" class="nav-link hidden" onclick="showAdmin()" id="adminLink">📊 后台</a>
       <a href="#" class="nav-link hidden" onclick="showExamEntry()" id="examLink">🎯 考核</a>
+      <a href="#" class="nav-link hidden" onclick="logout()" id="logoutLink">🚪 退出</a>
     </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="setup-card" id="loginScreen">
+    <h2>🔐 登录</h2>
+    <div id="loginModeTabs" style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="btn btn-primary btn-sm" id="tabExaminee" onclick="switchLoginMode('examinee')">我是考生</button>
+      <button class="btn btn-outline btn-sm" id="tabAdmin" onclick="switchLoginMode('admin')">我是管理员</button>
+    </div>
+    <div class="form-group">
+      <label>📧 邮箱</label>
+      <input type="email" id="loginEmail" placeholder="输入邮箱...">
+    </div>
+    <div class="form-group">
+      <label>🔑 密码</label>
+      <input type="password" id="loginPassword" placeholder="输入密码...">
+    </div>
+    <div class="form-group hidden" id="adminNameGroup">
+      <label>👤 显示名称</label>
+      <input type="text" id="adminName" placeholder="管理员名称...">
+    </div>
+    <button class="btn btn-primary btn-lg" id="loginBtn" onclick="handleLoginClick()">登录</button>
+    <button class="btn btn-outline btn-lg hidden" id="setupAdminBtn" onclick="handleSetupAdminClick()" style="margin-top:8px;">注册首个管理员</button>
+    <p id="loginTip" style="margin-top:12px;font-size:12px;color:var(--text-secondary);">考生由管理员创建账号后登录。</p>
+    <p id="localModeTip" style="margin-top:12px;font-size:12px;color:var(--warning);display:none;">⚠️ 当前为本地模式，所有数据仅保存在当前设备。如需云端同步，请联系管理员配置 Supabase。</p>
   </div>
 
   <!-- SETUP -->
@@ -402,25 +431,37 @@
 
   <!-- REPORT -->
   <div class="report-overlay" id="reportOverlay"><div class="report-card" id="reportCard"></div></div>
+  <!-- DETAILED REPORT -->
+  <div class="report-overlay" id="detailedReportOverlay"><div class="report-card" id="detailedReportCard"></div></div>
   <!-- DETAIL -->
   <div class="modal-overlay" id="detailModal"><div class="modal" id="detailContent"></div></div>
 </div>
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script>
 
 // ═══════════════════════════════════════════════════════════════
 //  内嵌后端逻辑 — 无需服务器
 // ═══════════════════════════════════════════════════════════════
 
-// ── SQLite via sql.js (loaded from CDN) ──
+// ═══════════════════════════════════════════════════════════════
+//  云端配置 — 替换这里为你自己的 Supabase 项目信息
+// ═══════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+
+let supabase = null;
+let cloudMode = false;
+let currentUser = null; // { id, email, role, displayName }
+
+// ── SQLite via sql.js (loaded from CDN) — 本地回退 ──
 let SQL = null;
 let db = null;
 
 async function initDatabase() {
   if (db) return db;
-  // Load sql.js from CDN
   if (!SQL) {
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
@@ -431,28 +472,20 @@ async function initDatabase() {
     });
     SQL = await initSqlJs({ locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/' + f });
   }
-  
-  // Try to restore from localStorage
   const saved = localStorage.getItem('exam_db_data');
   if (saved) {
-    try {
-      const arr = JSON.parse(saved);
-      db = new SQL.Database(new Uint8Array(arr));
-    } catch(e) {
-      db = new SQL.Database();
-    }
+    try { db = new SQL.Database(new Uint8Array(JSON.parse(saved))); }
+    catch(e) { db = new SQL.Database(); }
   } else {
     db = new SQL.Database();
   }
-  
-  // Create tables
   db.run(`CREATE TABLE IF NOT EXISTS exams (
     id TEXT PRIMARY KEY, trainee_name TEXT, difficulty TEXT, scenarios TEXT,
     overall_score INTEGER, grade TEXT, started_at TEXT, finished_at TEXT, status TEXT DEFAULT 'in_progress'
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS exam_messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT, exam_id TEXT, scenario_id TEXT,
-    round_index INTEGER, role TEXT, content TEXT, score INTEGER, feedback TEXT, created_at TEXT DEFAULT (datetime('now'))
+    round_index INTEGER, role TEXT, content TEXT, score INTEGER, feedback TEXT, score_details TEXT, created_at TEXT DEFAULT (datetime('now'))
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS scenario_scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT, exam_id TEXT, scenario_id TEXT,
@@ -463,18 +496,105 @@ async function initDatabase() {
     round_index INTEGER, trust_level INTEGER, intent_level INTEGER,
     trust_delta INTEGER, intent_delta INTEGER, created_at TEXT DEFAULT (datetime('now'))
   )`);
-  
   return db;
 }
 
 function saveDb() {
   if (!db) return;
-  try {
-    const data = db.export();
-    localStorage.setItem('exam_db_data', JSON.stringify(Array.from(data)));
-  } catch(e) {
-    console.warn('Failed to save DB to localStorage:', e.message);
+  try { localStorage.setItem('exam_db_data', JSON.stringify(Array.from(db.export()))); }
+  catch(e) { console.warn('Failed to save DB to localStorage:', e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Supabase 初始化与认证
+// ═══════════════════════════════════════════════════════════════
+async function initSupabase() {
+  if (!window.supabase || !window.supabase.createClient) return false;
+  if (SUPABASE_URL.includes('YOUR_PROJECT_ID') || SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')) {
+    console.log('[Supabase] 未配置，使用本地模式');
+    return false;
   }
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) await setCurrentUser(session.user);
+    cloudMode = true;
+    return true;
+  } catch (e) {
+    console.error('[Supabase] 初始化失败:', e.message);
+    supabase = null;
+    cloudMode = false;
+    return false;
+  }
+}
+
+async function setCurrentUser(authUser) {
+  if (!authUser) { currentUser = null; return; }
+  try {
+    const { data, error } = await supabase.from('app_users').select('*').eq('user_id', authUser.id).single();
+    if (error || !data) {
+      // 没有 app_users 记录，默认当作考生
+      currentUser = { id: authUser.id, email: authUser.email, role: 'examinee', displayName: authUser.user_metadata?.display_name || authUser.email };
+    } else {
+      currentUser = { id: authUser.id, email: authUser.email, role: data.role, displayName: data.display_name };
+    }
+  } catch (e) {
+    currentUser = { id: authUser.id, email: authUser.email, role: 'examinee', displayName: authUser.email };
+  }
+}
+
+async function login(email, password) {
+  if (!supabase) throw new Error('云端服务未配置');
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  await setCurrentUser(data.user);
+  return currentUser;
+}
+
+async function logout() {
+  if (supabase) await supabase.auth.signOut();
+  currentUser = null;
+  showLoginScreen();
+}
+
+async function signupAdmin(email, password, displayName) {
+  if (!supabase) throw new Error('云端服务未配置');
+  const { data, error } = await supabase.auth.signUp({
+    email, password,
+    options: { data: { display_name: displayName } }
+  });
+  if (error) throw error;
+  // 写入 app_users 标记为管理员
+  const { error: dbError } = await supabase.from('app_users').insert({
+    user_id: data.user.id, display_name: displayName, role: 'admin'
+  });
+  if (dbError) throw dbError;
+  await setCurrentUser(data.user);
+  return currentUser;
+}
+
+async function createExamineeAccount(email, password, displayName) {
+  if (!supabase) throw new Error('云端服务未配置');
+  if (!currentUser || currentUser.role !== 'admin') throw new Error('只有管理员可以创建考生账号');
+  const { data, error } = await supabase.auth.signUp({
+    email, password,
+    options: { data: { display_name: displayName } }
+  });
+  if (error) throw error;
+  const { error: dbError } = await supabase.from('app_users').insert({
+    user_id: data.user.id, display_name: displayName, role: 'examinee'
+  });
+  if (dbError) throw dbError;
+  return { email, password, displayName };
+}
+
+function generateTempPassword() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let pw = '';
+  for (let i = 0; i < 8; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  return pw;
 }
 
 function dbRun(sql, params = []) {
@@ -512,6 +632,137 @@ function dbAll(sql, params = []) {
   return rows;
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  数据访问抽象层：云端优先，本地回退
+// ═══════════════════════════════════════════════════════════════
+const dataLayer = {
+  enabled: () => cloudMode && supabase && currentUser,
+
+  async insertExam(row) {
+    if (!this.enabled()) {
+      const cols = Object.keys(row).join(',');
+      const placeholders = Object.keys(row).map(() => '?').join(',');
+      dbRun(`INSERT INTO exams (${cols}) VALUES (${placeholders})`, Object.values(row));
+      return;
+    }
+    const payload = { ...row };
+    if (currentUser) payload.user_id = currentUser.id;
+    const { error } = await supabase.from('exams').insert(payload);
+    if (error) throw error;
+  },
+
+  async updateExam(id, fields) {
+    if (!this.enabled()) {
+      const setClause = Object.keys(fields).map(k => `${k} = ?`).join(',');
+      dbRun(`UPDATE exams SET ${setClause} WHERE id = ?`, [...Object.values(fields), id]);
+      return;
+    }
+    const { error } = await supabase.from('exams').update(fields).eq('id', id);
+    if (error) throw error;
+  },
+
+  async getExam(id) {
+    if (!this.enabled()) return dbGet('SELECT * FROM exams WHERE id = ?', [id]);
+    const { data, error } = await supabase.from('exams').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data;
+  },
+
+  async listExams(filters = {}) {
+    if (!this.enabled()) {
+      const where = [];
+      const params = [];
+      if (filters.userId) { where.push('user_id = ?'); params.push(filters.userId); }
+      if (filters.traineeName) { where.push('trainee_name = ?'); params.push(filters.traineeName); }
+      const sql = 'SELECT * FROM exams' + (where.length ? ' WHERE ' + where.join(' AND ') : '') + ' ORDER BY started_at DESC';
+      return dbAll(sql, params);
+    }
+    let q = supabase.from('exams').select('*', { count: 'exact' }).order('started_at', { ascending: false });
+    if (filters.userId) q = q.eq('user_id', filters.userId);
+    if (filters.traineeName) q = q.eq('trainee_name', filters.traineeName);
+    const { data, error } = await q;
+    if (error) throw error;
+    return data || [];
+  },
+
+  async insertMessage(row) {
+    if (!this.enabled()) {
+      const cols = Object.keys(row).join(',');
+      const placeholders = Object.keys(row).map(() => '?').join(',');
+      dbRun(`INSERT INTO exam_messages (${cols}) VALUES (${placeholders})`, Object.values(row));
+      return;
+    }
+    const { error } = await supabase.from('exam_messages').insert(row);
+    if (error) throw error;
+  },
+
+  async getMessages(examId, scenarioId) {
+    if (!this.enabled()) {
+      if (scenarioId) {
+        return dbAll('SELECT * FROM exam_messages WHERE exam_id = ? AND scenario_id = ? ORDER BY id', [examId, scenarioId]);
+      }
+      return dbAll('SELECT * FROM exam_messages WHERE exam_id = ? ORDER BY id', [examId]);
+    }
+    let q = supabase.from('exam_messages').select('*').eq('exam_id', examId).order('id');
+    if (scenarioId) q = q.eq('scenario_id', scenarioId);
+    const { data, error } = await q;
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getSalesScores(examId, scenarioId) {
+    if (!this.enabled()) {
+      return dbAll('SELECT score FROM exam_messages WHERE exam_id = ? AND scenario_id = ? AND role = ? AND score IS NOT NULL',
+        [examId, scenarioId, 'sales']);
+    }
+    const { data, error } = await supabase.from('exam_messages')
+      .select('score').eq('exam_id', examId).eq('scenario_id', scenarioId).eq('role', 'sales').not('score', 'is', null);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async insertMetric(row) {
+    if (!this.enabled()) {
+      const cols = Object.keys(row).join(',');
+      const placeholders = Object.keys(row).map(() => '?').join(',');
+      dbRun(`INSERT INTO exam_metrics (${cols}) VALUES (${placeholders})`, Object.values(row));
+      return;
+    }
+    const { error } = await supabase.from('exam_metrics').insert(row);
+    if (error) throw error;
+  },
+
+  async insertScenarioScore(row) {
+    if (!this.enabled()) {
+      const cols = Object.keys(row).join(',');
+      const placeholders = Object.keys(row).map(() => '?').join(',');
+      dbRun(`INSERT INTO scenario_scores (${cols}) VALUES (${placeholders})`, Object.values(row));
+      return;
+    }
+    const { error } = await supabase.from('scenario_scores').insert(row);
+    if (error) throw error;
+  },
+
+  async getScenarioScores(examId) {
+    if (!this.enabled()) return dbAll('SELECT * FROM scenario_scores WHERE exam_id = ?', [examId]);
+    const { data, error } = await supabase.from('scenario_scores').select('*').eq('exam_id', examId);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async deleteExam(id) {
+    if (!this.enabled()) {
+      dbRun('DELETE FROM exam_messages WHERE exam_id = ?', [id]);
+      dbRun('DELETE FROM scenario_scores WHERE exam_id = ?', [id]);
+      dbRun('DELETE FROM exam_metrics WHERE exam_id = ?', [id]);
+      dbRun('DELETE FROM exams WHERE id = ?', [id]);
+      return;
+    }
+    const { error } = await supabase.from('exams').delete().eq('id', id);
+    if (error) throw error;
+  }
+};
+
 // ── UUID generator (browser-compatible) ──
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -528,12 +779,12 @@ const LLM_PROVIDERS = {
 };
 
 let llmConfig = {
-  provider: localStorage.getItem('llm_provider') || '',
-  apiKey: localStorage.getItem('llm_api_key') || '',
-  model: localStorage.getItem('llm_model') || '',
+  provider: '',
+  apiKey: '',
+  model: '',
   temperature: 0.85,
   timeout: 15000,
-  enabled: !!localStorage.getItem('llm_api_key'),
+  enabled: false,
   consecutiveFailures: 0,
   maxFailures: 3,
 };
@@ -549,21 +800,61 @@ function getLlmConfig() {
   };
 }
 
-function updateLlmConfigBrowser(newConfig) {
-  if (newConfig.provider !== undefined) {
-    llmConfig.provider = newConfig.provider;
-    localStorage.setItem('llm_provider', newConfig.provider);
+async function loadLlmConfigFromCloud() {
+  // 本地回退：尝试从 localStorage 读取旧配置
+  if (!cloudMode || !supabase) {
+    llmConfig.provider = localStorage.getItem('llm_provider') || '';
+    llmConfig.apiKey = localStorage.getItem('llm_api_key') || '';
+    llmConfig.model = localStorage.getItem('llm_model') || '';
+    llmConfig.enabled = !!llmConfig.apiKey;
+    return getLlmConfig();
   }
+  try {
+    const { data, error } = await supabase.from('app_config').select('value').eq('key', 'llm_config').single();
+    if (error || !data) throw error || new Error('未找到配置');
+    const cfg = data.value || {};
+    llmConfig.provider = cfg.provider || '';
+    llmConfig.apiKey = cfg.apiKey || '';
+    llmConfig.model = cfg.model || '';
+    llmConfig.enabled = !!llmConfig.apiKey;
+    llmConfig.consecutiveFailures = 0;
+  } catch (e) {
+    console.warn('[LLM] 从云端加载配置失败，使用本地回退:', e.message);
+    llmConfig.provider = localStorage.getItem('llm_provider') || '';
+    llmConfig.apiKey = localStorage.getItem('llm_api_key') || '';
+    llmConfig.model = localStorage.getItem('llm_model') || '';
+    llmConfig.enabled = !!llmConfig.apiKey;
+  }
+  return getLlmConfig();
+}
+
+async function updateLlmConfigBrowser(newConfig) {
+  if (newConfig.provider !== undefined) llmConfig.provider = newConfig.provider;
   if (newConfig.apiKey !== undefined) {
     llmConfig.apiKey = newConfig.apiKey;
     llmConfig.enabled = !!newConfig.apiKey;
-    localStorage.setItem('llm_api_key', newConfig.apiKey);
   }
-  if (newConfig.model !== undefined) {
-    llmConfig.model = newConfig.model;
-    localStorage.setItem('llm_model', newConfig.model);
-  }
+  if (newConfig.model !== undefined) llmConfig.model = newConfig.model;
   llmConfig.consecutiveFailures = 0;
+
+  if (cloudMode && supabase) {
+    // 仅管理员可写
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error('只有管理员可以修改大模型配置');
+    }
+    const payload = {
+      key: 'llm_config',
+      value: { provider: llmConfig.provider, apiKey: llmConfig.apiKey, model: llmConfig.model },
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabase.from('app_config').upsert(payload, { onConflict: 'key' });
+    if (error) throw error;
+  } else {
+    // 本地回退
+    if (newConfig.provider !== undefined) localStorage.setItem('llm_provider', newConfig.provider);
+    if (newConfig.apiKey !== undefined) localStorage.setItem('llm_api_key', newConfig.apiKey);
+    if (newConfig.model !== undefined) localStorage.setItem('llm_model', newConfig.model);
+  }
   return getLlmConfig();
 }
 
@@ -2038,19 +2329,24 @@ async function apiExamStart(params) {
   const examId = generateUUID();
   const now = new Date().toISOString();
 
-  dbRun('INSERT INTO exams (id, trainee_name, difficulty, scenarios, started_at, status) VALUES (?, ?, ?, ?, ?, ?)',
-    [examId, traineeName, difficulty, JSON.stringify(scenarios), now, 'in_progress']);
+  await dataLayer.insertExam({
+    id: examId, trainee_name: traineeName, difficulty, scenarios: JSON.stringify(scenarios),
+    started_at: now, status: 'in_progress'
+  });
 
   const firstScenarioId = scenarios[0];
   const customerType = getRandomCustomerType();
   const opening = getOpeningMessage(firstScenarioId, customerType);
   const context = getScenarioContext(firstScenarioId, customerType);
 
-  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, 0, ?, ?)',
-    [examId, firstScenarioId, 'customer', opening]);
+  await dataLayer.insertMessage({
+    exam_id: examId, scenario_id: firstScenarioId, round_index: 0, role: 'customer', content: opening
+  });
 
-  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, 0, ?, ?, 0, 0)',
-    [examId, firstScenarioId, context.baseTrust, context.baseIntent]);
+  await dataLayer.insertMetric({
+    exam_id: examId, scenario_id: firstScenarioId, round_index: 0,
+    trust_level: context.baseTrust, intent_level: context.baseIntent, trust_delta: 0, intent_delta: 0
+  });
 
   return {
     examId, currentScenario: firstScenarioId, customerType,
@@ -2063,16 +2359,18 @@ async function apiExamStart(params) {
 
 async function apiExamMessage(params) {
   const { examId, scenarioId, message, customerType, roundIndex } = params;
-  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  const exam = await dataLayer.getExam(examId);
   if (!exam) throw new Error('考核不存在');
 
-  const history = dbAll('SELECT role, content FROM exam_messages WHERE exam_id = ? AND scenario_id = ? ORDER BY id ASC',
-    [examId, scenarioId]);
+  const history = await dataLayer.getMessages(examId, scenarioId);
 
   const scoreResult = scoreResponse(message, scenarioId, customerType, roundIndex || 0, history);
 
-  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content, score, feedback) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [examId, scenarioId, roundIndex || 0, 'sales', message, scoreResult.score, scoreResult.feedback]);
+  await dataLayer.insertMessage({
+    exam_id: examId, scenario_id: scenarioId, round_index: roundIndex || 0, role: 'sales',
+    content: message, score: scoreResult.score, feedback: scoreResult.feedback,
+    score_details: JSON.stringify(scoreResult.details)
+  });
 
   const state = getCustomerState(examId, scenarioId, customerType, exam.difficulty);
   const msgAnalysis = analyzeMessage(message);
@@ -2088,14 +2386,18 @@ async function apiExamMessage(params) {
     customerMsg = generateResponseRules(message, scenarioId, customerType, roundIndex || 0, history, exam.difficulty);
   }
 
-  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, ?, ?, ?)',
-    [examId, scenarioId, (roundIndex || 0) + 1, 'customer', customerMsg]);
+  await dataLayer.insertMessage({
+    exam_id: examId, scenario_id: scenarioId, round_index: (roundIndex || 0) + 1, role: 'customer', content: customerMsg
+  });
 
   const maxRounds = getMaxRounds(scenarioId, exam.difficulty);
   const shouldEnd = (roundIndex || 0) + 1 >= maxRounds;
 
-  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [examId, scenarioId, roundIndex || 0, stateResult.trust, stateResult.intent, stateResult.trustDelta, stateResult.intentDelta]);
+  await dataLayer.insertMetric({
+    exam_id: examId, scenario_id: scenarioId, round_index: roundIndex || 0,
+    trust_level: stateResult.trust, intent_level: stateResult.intent,
+    trust_delta: stateResult.trustDelta, intent_delta: stateResult.intentDelta
+  });
 
   return {
     customerMessage: customerMsg, score: scoreResult.score,
@@ -2108,7 +2410,7 @@ async function apiExamMessage(params) {
 
 async function apiExamNextScenario(params) {
   const { examId, currentScenarioIndex } = params;
-  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+  const exam = await dataLayer.getExam(examId);
   const scenarios = JSON.parse(exam.scenarios);
   const nextIndex = (currentScenarioIndex || 0) + 1;
   if (nextIndex >= scenarios.length) return { allComplete: true };
@@ -2118,10 +2420,13 @@ async function apiExamNextScenario(params) {
   const opening = getOpeningMessage(nextScenarioId, customerType);
   const context = getScenarioContext(nextScenarioId, customerType);
 
-  dbRun('INSERT INTO exam_messages (exam_id, scenario_id, round_index, role, content) VALUES (?, ?, 0, ?, ?)',
-    [examId, nextScenarioId, 'customer', opening]);
-  dbRun('INSERT INTO exam_metrics (exam_id, scenario_id, round_index, trust_level, intent_level, trust_delta, intent_delta) VALUES (?, ?, 0, ?, ?, 0, 0)',
-    [examId, nextScenarioId, context.baseTrust, context.baseIntent]);
+  await dataLayer.insertMessage({
+    exam_id: examId, scenario_id: nextScenarioId, round_index: 0, role: 'customer', content: opening
+  });
+  await dataLayer.insertMetric({
+    exam_id: examId, scenario_id: nextScenarioId, round_index: 0,
+    trust_level: context.baseTrust, intent_level: context.baseIntent, trust_delta: 0, intent_delta: 0
+  });
 
   const oldId = scenarios[currentScenarioIndex || 0];
   if (oldId) customerStates.delete(examId + ':' + oldId);
@@ -2135,24 +2440,23 @@ async function apiExamNextScenario(params) {
   };
 }
 
-function apiExamStop(examId) {
+async function apiExamStop(examId) {
   return finishExamLogic(examId, 'stopped');
 }
 
-function apiExamFinish(examId) {
+async function apiExamFinish(examId) {
   return finishExamLogic(examId, 'completed');
 }
 
-function finishExamLogic(examId, status) {
-  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [examId]);
+async function finishExamLogic(examId, status) {
+  const exam = await dataLayer.getExam(examId);
   if (!exam) throw new Error('考核不存在');
   const scenarios = JSON.parse(exam.scenarios);
   const scenarioResults = [];
   let totalScore = 0, totalMaxScore = 0;
 
   for (const sid of scenarios) {
-    const msgs = dbAll('SELECT score FROM exam_messages WHERE exam_id = ? AND scenario_id = ? AND role = ? AND score IS NOT NULL',
-      [examId, sid, 'sales']);
+    const msgs = await dataLayer.getSalesScores(examId, sid);
     const scores = msgs.map(m => m.score);
     const sTotal = scores.reduce((a,b) => a+b, 0);
     const sMax = scores.length * 100;
@@ -2168,8 +2472,17 @@ function finishExamLogic(examId, status) {
   else if (overallPct >= 60) grade = '及格';
   else grade = '需加强';
 
-  dbRun('UPDATE exams SET overall_score = ?, grade = ?, finished_at = ?, status = ? WHERE id = ?',
-    [overallPct, grade, new Date().toISOString(), status, examId]);
+  await dataLayer.updateExam(examId, {
+    overall_score: overallPct, grade, finished_at: new Date().toISOString(), status
+  });
+
+  // 写入 scenario_scores 表，便于云端查询
+  for (const sr of scenarioResults) {
+    await dataLayer.insertScenarioScore({
+      exam_id: examId, scenario_id: sr.scenarioId,
+      total_score: sr.totalScore, max_score: sr.maxScore, percentage: sr.percentage
+    });
+  }
 
   clearCustomerState(examId);
 
@@ -2181,34 +2494,35 @@ function finishExamLogic(examId, status) {
   };
 }
 
-function apiAdminStats() {
-  const totalExams = dbGet('SELECT COUNT(*) as count FROM exams').count;
-  const completedExams = dbGet("SELECT COUNT(*) as count FROM exams WHERE status = 'completed'").count;
-  const avgScore = dbGet('SELECT ROUND(AVG(CAST(overall_score AS FLOAT))) as avg FROM exams WHERE overall_score IS NOT NULL').avg || 0;
-  const todayExams = dbGet("SELECT COUNT(*) as count FROM exams WHERE date(started_at) = date('now')").count;
+async function apiAdminStats() {
+  const exams = await dataLayer.listExams();
+  const totalExams = exams.length;
+  const completedExams = exams.filter(e => e.status === 'completed').length;
+  const scored = exams.filter(e => e.overall_score !== null && e.overall_score !== undefined);
+  const avgScore = scored.length ? Math.round(scored.reduce((a, e) => a + e.overall_score, 0) / scored.length) : 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const todayExams = exams.filter(e => (e.started_at || '').slice(0, 10) === today).length;
   return { totalExams, completedExams, avgScore, todayExams };
 }
 
-function apiAdminExams(page = 1, limit = 50) {
+async function apiAdminExams(page = 1, limit = 50) {
+  const exams = await dataLayer.listExams();
+  const total = exams.length;
   const offset = (page - 1) * limit;
-  const exams = dbAll('SELECT * FROM exams ORDER BY started_at DESC LIMIT ? OFFSET ?', [limit, offset]);
-  const total = dbGet('SELECT COUNT(*) as count FROM exams').count;
-  return { exams, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  const pageExams = exams.slice(offset, offset + limit);
+  return { exams: pageExams, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 }
 
-function apiAdminExamDetail(id) {
-  const exam = dbGet('SELECT * FROM exams WHERE id = ?', [id]);
+async function apiAdminExamDetail(id) {
+  const exam = await dataLayer.getExam(id);
   if (!exam) return null;
-  const messages = dbAll('SELECT * FROM exam_messages WHERE exam_id = ? ORDER BY id ASC', [id]);
-  const scenarioScores = dbAll('SELECT * FROM scenario_scores WHERE exam_id = ?', [id]);
+  const messages = await dataLayer.getMessages(id, null); // null scenarioId returns all for local; need fix
+  const scenarioScores = await dataLayer.getScenarioScores(id);
   return { exam, messages, scenarioScores };
 }
 
-function apiAdminDeleteExam(id) {
-  dbRun('DELETE FROM exam_messages WHERE exam_id = ?', [id]);
-  dbRun('DELETE FROM scenario_scores WHERE exam_id = ?', [id]);
-  dbRun('DELETE FROM exam_metrics WHERE exam_id = ?', [id]);
-  dbRun('DELETE FROM exams WHERE id = ?', [id]);
+async function apiAdminDeleteExam(id) {
+  await dataLayer.deleteExam(id);
 }
 
 // ══ 规则引擎 Fallback ══
@@ -2597,19 +2911,130 @@ let state = {
   currentScenarioId:null,customerType:null,scores:[],isTyping:false,active:false,
   trust:25,intent:20,
 };
+let loginMode = 'examinee';
+
+// ═══════════════════ AUTH UI ═══════════════════
+function applyAuthUI() {
+  const isCloudConfigured = cloudMode && supabase;
+  const localModeTip = document.getElementById('localModeTip');
+  if (localModeTip) localModeTip.style.display = isCloudConfigured ? 'none' : 'block';
+
+  // 如果未配置 Supabase，跳过登录，直接进入考核界面（兼容旧版本）
+  if (!isCloudConfigured) {
+    showSetupScreen();
+    document.getElementById('adminLink').classList.remove('hidden');
+    document.getElementById('logoutLink').classList.add('hidden');
+    document.getElementById('userBadge').classList.add('hidden');
+    return;
+  }
+
+  if (currentUser) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('userBadge').classList.remove('hidden');
+    document.getElementById('userBadge').textContent = currentUser.role === 'admin' ? '👤 管理员' : '👤 ' + (currentUser.displayName || currentUser.email);
+    document.getElementById('logoutLink').classList.remove('hidden');
+    if (currentUser.role === 'admin') {
+      document.getElementById('adminLink').classList.remove('hidden');
+      document.getElementById('examLink').classList.add('hidden');
+      showSetupScreen();
+    } else {
+      document.getElementById('adminLink').classList.add('hidden');
+      document.getElementById('examLink').classList.add('hidden');
+      showSetupScreen();
+    }
+  } else {
+    showLoginScreen();
+  }
+}
+
+function showLoginScreen() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('examScreen').classList.remove('active');
+  document.getElementById('adminPanel').classList.remove('active');
+  document.getElementById('adminLink').classList.add('hidden');
+  document.getElementById('examLink').classList.add('hidden');
+  document.getElementById('logoutLink').classList.add('hidden');
+  document.getElementById('userBadge').classList.add('hidden');
+  document.getElementById('headerBadge').textContent = '🔐 请登录';
+}
+
+function showSetupScreen() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  document.getElementById('examScreen').classList.remove('active');
+  document.getElementById('adminPanel').classList.remove('active');
+  document.getElementById('headerBadge').textContent = '🏢 跨洋狮';
+}
+
+function switchLoginMode(mode) {
+  loginMode = mode;
+  document.getElementById('tabExaminee').className = mode === 'examinee' ? 'btn btn-primary btn-sm tab-active' : 'btn btn-outline btn-sm';
+  document.getElementById('tabAdmin').className = mode === 'admin' ? 'btn btn-primary btn-sm tab-active' : 'btn btn-outline btn-sm';
+  document.getElementById('adminNameGroup').classList.toggle('hidden', mode !== 'admin');
+  document.getElementById('loginBtn').textContent = mode === 'admin' ? '注册/登录管理员' : '登录';
+  document.getElementById('setupAdminBtn').classList.toggle('hidden', mode !== 'admin');
+  document.getElementById('loginTip').textContent = mode === 'admin'
+    ? '首次使用请注册管理员账号。后续可创建考生账号。'
+    : '考生由管理员创建账号后登录。';
+}
+
+async function handleLoginClick() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) { toast('请输入邮箱和密码'); return; }
+
+  if (!cloudMode || !supabase) {
+    toast('当前为本地模式，无需登录');
+    showSetupScreen();
+    return;
+  }
+
+  try {
+    if (loginMode === 'admin') {
+      // 尝试登录，失败则注册
+      try {
+        await login(email, password);
+      } catch (loginErr) {
+        const name = document.getElementById('adminName').value.trim() || email.split('@')[0];
+        await signupAdmin(email, password, name);
+      }
+      if (currentUser.role !== 'admin') {
+        toast('该账号不是管理员');
+        await logout();
+        return;
+      }
+    } else {
+      await login(email, password);
+      if (currentUser.role !== 'examinee') {
+        toast('请使用考生账号登录');
+        await logout();
+        return;
+      }
+    }
+    applyAuthUI();
+    toast('登录成功');
+  } catch (e) {
+    toast('登录失败: ' + e.message);
+  }
+}
+
+async function handleSetupAdminClick() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const name = document.getElementById('adminName').value.trim() || email.split('@')[0];
+  if (!email || !password) { toast('请输入邮箱和密码'); return; }
+  try {
+    await signupAdmin(email, password, name);
+    applyAuthUI();
+    toast('管理员注册成功');
+  } catch (e) {
+    toast('注册失败: ' + e.message);
+  }
+}
 
 // ═══════════════════ INIT ═══════════════════
 async function init(){
-  // Initialize database first
-  try {
-    await initDatabase();
-    console.log('Database initialized');
-  } catch(e) {
-    console.error('DB init failed:', e);
-    toast('数据库初始化失败，请刷新重试');
-    return;
-  }
-  
   const grid=document.getElementById('scenarioGrid');
   EXAM_SCENARIOS.forEach(s=>{
     const c=document.createElement('div');
@@ -2781,7 +3206,7 @@ async function stopExam(){
   if(!state.active)return;
   if(!confirm('确定要停止当前考核吗？已完成的部分会被保存。'))return;
   try{
-    const d=apiExamStop(state.examId);
+    const d=await apiExamStop(state.examId);
     state.active=false;
     showReport(d,true);
   }catch(e){
@@ -2794,7 +3219,7 @@ async function stopExam(){
 async function finishExam(){
   if(!state.active)return;
   try{
-    const d=apiExamFinish(state.examId);
+    const d=await apiExamFinish(state.examId);
     state.active=false;
     showReport(d,false);
   }catch(e){
@@ -2847,11 +3272,115 @@ function showReport(d,stopped){
     ${(d.improveFeedback||[]).length?`<div class="feedback-section"><h3>🔧 需要改进</h3>${d.improveFeedback.map(f=>`<div class="feedback-item feedback-improve"><span>💡</span><span>${esc(f.text).replace(/\n/g,'<br>')}</span></div>`).join('')}</div>`:''}
     <div class="btn-row">
       <button class="btn-outline" onclick="retakeExam()">🔄 重新考核</button>
+      <button class="btn btn-primary" onclick="showDetailedReport('${d.examId}')">📄 查看详细报告</button>
       <button class="btn btn-primary" onclick="closeReport()">✅ 确认</button>
     </div>
   `;
   document.getElementById('reportOverlay').classList.add('active');
 }
+
+async function showDetailedReport(examId){
+  closeReport();
+  try{
+    const exam = await dataLayer.getExam(examId);
+    if(!exam){toast('未找到考核记录');return;}
+    const allMessages = await dataLayer.getMessages(examId, null);
+    const salesMessages = allMessages.filter(m=>m.role==='sales' && m.score !== null && m.score !== undefined);
+    const scenarioScores = await dataLayer.getScenarioScores(examId);
+
+    // 计算各维度平均分
+    const dimTotals = { professionalism:0, strategy:0, communication:0, structure:0, progression:0 };
+    let dimCount = 0;
+    for(const m of allMessages){
+      if(m.role==='sales' && m.score_details){
+        try{
+          const det = typeof m.score_details === 'string' ? JSON.parse(m.score_details) : m.score_details;
+          for(const k in dimTotals) if(det[k]) { dimTotals[k] += det[k]; }
+          dimCount++;
+        }catch(e){}
+      }
+    }
+
+    // 按场景聚合
+    const byScenario = {};
+    for(const m of allMessages){
+      if(!byScenario[m.scenario_id]) byScenario[m.scenario_id] = [];
+      byScenario[m.scenario_id].push(m);
+    }
+
+    // 生成评价
+    const avgScore = salesMessages.length ? Math.round(salesMessages.reduce((a,m)=>a+m.score,0)/salesMessages.length) : 0;
+    let overallComment = '';
+    if(avgScore>=85) overallComment = '你的整体表现非常出色，话术专业、逻辑清晰，已经具备独立接待客户的能力。';
+    else if(avgScore>=70) overallComment = '你的表现良好，基本掌握了销售话术的核心要点，仍有少量细节可以打磨。';
+    else if(avgScore>=60) overallComment = '你具备了一定的基础，但在专业度、策略匹配或推进能力上还需要加强训练。';
+    else overallComment = '本次考核暴露出较多问题，建议重新学习SOP话术，多进行模拟练习。';
+
+    // 收集亮点与改进点
+    const goodPoints = [], improvePoints = [];
+    for(const m of salesMessages){
+      if(m.score >= 75) goodPoints.push({text:m.content, score:m.score, feedback:m.feedback});
+      else if(m.score < 60) improvePoints.push({text:m.content, score:m.score, feedback:m.feedback});
+    }
+
+    const html = `
+      <h2>📄 考生详细报告</h2>
+      <p style="text-align:center;color:var(--text-secondary);font-size:13px">考生：${esc(exam.trainee_name)} | 综合：${exam.overall_score??'-'}分 | 等级：${exam.grade??'-'}</p>
+
+      <div class="feedback-section"><h3>📝 总体评价</h3>
+        <div class="feedback-item feedback-good"><span>🎯</span><span>${overallComment}</span></div>
+      </div>
+
+      <h3 style="margin-bottom:8px;color:var(--primary);font-size:15px;margin-top:16px">📈 各场景表现</h3>
+      <div class="dim-scores">
+        ${scenarioScores.map(ss=>{
+          const s = EXAM_SCENARIOS.find(sc=>sc.id===ss.scenario_id);
+          return `<div class="dim-item">
+            <div class="dim-name">${s?s.name:ss.scenario_id}</div>
+            <div class="dim-score">${ss.percentage}分 (${ss.total_score}/${ss.max_score})</div>
+            <div class="dim-bar-bg"><div class="dim-bar-fill" style="width:${ss.percentage}%;background:${ss.percentage>=80?'var(--success)':ss.percentage>=60?'var(--warning)':'var(--danger)'}"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${goodPoints.length?`<div class="feedback-section"><h3>✅ 表现亮点</h3>${goodPoints.map(p=>`<div class="feedback-item feedback-good"><span>👍</span><span><b>${p.score}分</b>：${esc(p.text)}<br><i style="color:var(--text-secondary)">${esc(p.feedback||'')}</i></span></div>`).join('')}</div>`:''}
+
+      ${improvePoints.length?`<div class="feedback-section"><h3>🔧 需要改进</h3>${improvePoints.map(p=>`<div class="feedback-item feedback-improve"><span>💡</span><span><b>${p.score}分</b>：${esc(p.text)}<br><i style="color:var(--text-secondary)">${esc(p.feedback||'')}</i></span></div>`).join('')}</div>`:''}
+
+      <div class="feedback-section"><h3>📚 改进建议</h3>
+        ${avgScore<70?`<div class="feedback-item feedback-improve"><span>📖</span><span>建议重点复习「异议处理」和「SPIN挖需」话术，提升客户信任度。</span></div>`:''}
+        ${avgScore<85?`<div class="feedback-item feedback-improve"><span>🎧</span><span>多倾听客户需求，避免一开始就直接报价或过度推销。</span></div>`:''}
+        <div class="feedback-item feedback-good"><span>🔄</span><span>建议每天进行1-2轮模拟考核，持续优化开场白和逼单话术。</span></div>
+      </div>
+
+      <h3 style="margin-bottom:8px;color:var(--primary);font-size:15px;margin-top:16px">💬 完整对话回顾</h3>
+      <div class="chat-transcript" style="max-height:400px;">
+        ${allMessages.map(m=>{
+          const cls=m.role==='sales'?'sales':'customer';
+          const rl=m.role==='sales'?'🧑‍💼 销售':'👤 客户';
+          const si=m.score!==null&&m.score!==undefined?` | 评分:${m.score}`:'';
+          return `<div class="transcript-msg ${cls}">
+            <div class="role">${rl} (${m.scenario_id}, 轮${m.round_index})${si}</div>
+            <div class="text">${esc(m.content)}</div>
+            ${m.feedback?`<div class="score-info">💬 ${esc(m.feedback)}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-outline" onclick="retakeExam()">🔄 重新考核</button>
+        <button class="btn btn-primary" onclick="closeDetailedReport()">✅ 关闭</button>
+      </div>
+    `;
+    document.getElementById('detailedReportCard').innerHTML = html;
+    document.getElementById('detailedReportOverlay').classList.add('active');
+  }catch(e){
+    console.error('加载详细报告失败:', e);
+    toast('加载详细报告失败: '+e.message);
+  }
+}
+
+function closeDetailedReport(){document.getElementById('detailedReportOverlay').classList.remove('active');}
 
 function retakeExam(){
   document.getElementById('reportOverlay').classList.remove('active');
@@ -2863,6 +3392,12 @@ function closeReport(){document.getElementById('reportOverlay').classList.remove
 
 // ═══════════════════ ADMIN ═══════════════════
 async function showAdmin(){
+  if (cloudMode && supabase && (!currentUser || currentUser.role !== 'admin')) {
+    toast('需要管理员权限');
+    showLoginScreen();
+    return;
+  }
+  document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('setupScreen').classList.add('hidden');
   document.getElementById('examScreen').classList.remove('active');
   document.getElementById('adminPanel').classList.add('active');
@@ -2876,6 +3411,7 @@ async function showAdmin(){
 }
 function showExamEntry(){
   document.getElementById('adminPanel').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('setupScreen').classList.remove('hidden');
   document.getElementById('adminLink').classList.remove('hidden');
   document.getElementById('examLink').classList.add('hidden');
@@ -2885,14 +3421,30 @@ function showExamEntry(){
 
 async function loadAdmin(){
   try{
-    const s=apiAdminStats();const e=apiAdminExams();
+    const s=await apiAdminStats();const e=await apiAdminExams();
     document.getElementById('statsGrid').innerHTML=`
       <div class="stat-card"><div class="stat-num">${s.totalExams}</div><div class="stat-label">总考核</div></div>
       <div class="stat-card"><div class="stat-num">${s.completedExams}</div><div class="stat-label">已完成</div></div>
       <div class="stat-card"><div class="stat-num">${s.avgScore}</div><div class="stat-label">平均分</div></div>
       <div class="stat-card"><div class="stat-num">${s.todayExams}</div><div class="stat-label">今日</div></div>`;
     const gi={优秀:'🟢',良好:'🔵',及格:'🟡',需加强:'🔴'};
-    document.getElementById('examTable').innerHTML=`
+
+    // 管理员账号创建区域
+    const createAccountHtml = (cloudMode && supabase) ? `
+      <div style="background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
+        <h3 style="font-size:15px;color:var(--primary);margin-bottom:12px;">➕ 创建考生账号</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+          <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">考生邮箱</label>
+            <input type="email" id="newExamineeEmail" placeholder="examinee@example.com" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+          <div><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">考生姓名</label>
+            <input type="text" id="newExamineeName" placeholder="姓名" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+          <div style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-sm" onclick="handleCreateExaminee()" style="width:100%;">🎲 生成并创建</button></div>
+        </div>
+        <div id="newAccountResult" style="margin-top:8px;font-size:12px;color:var(--text-secondary);"></div>
+      </div>
+    ` : '';
+
+    document.getElementById('examTable').innerHTML= createAccountHtml + `
       <table><thead><tr><th>考生</th><th>难度</th><th>场景</th><th>总分</th><th>等级</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
       <tbody>${e.exams.map(ex=>`
         <tr>
@@ -2912,9 +3464,23 @@ async function loadAdmin(){
   }catch(e){document.getElementById('examTable').innerHTML='<div style="padding:32px;text-align:center;color:var(--danger)">加载失败: '+e.message+'</div>';}
 }
 
+async function handleCreateExaminee() {
+  const email = document.getElementById('newExamineeEmail').value.trim();
+  const name = document.getElementById('newExamineeName').value.trim();
+  if (!email || !name) { toast('请输入邮箱和姓名'); return; }
+  const password = generateTempPassword();
+  try {
+    const result = await createExamineeAccount(email, password, name);
+    document.getElementById('newAccountResult').innerHTML =
+      `✅ 已创建：${esc(result.email)} | 密码：<b>${esc(result.password)}</b>（请复制保存）`;
+  } catch (e) {
+    toast('创建失败: ' + e.message);
+  }
+}
+
 async function viewDetail(id){
   try{
-    const d=apiAdminExamDetail(id); if(!d){toast('未找到');return;}
+    const d=await apiAdminExamDetail(id); if(!d){toast('未找到');return;}
     document.getElementById('detailContent').innerHTML=`
       <h3>📋 ${esc(d.exam.trainee_name)} 的考核详情</h3>
       <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px">
@@ -2947,7 +3513,7 @@ function closeDetail(){document.getElementById('detailModal').classList.remove('
 
 async function deleteExam(id){
   if(!confirm('确定删除？不可恢复。'))return;
-  try{apiAdminDeleteExam(id);loadAdmin();}catch(e){toast('删除失败');}
+  try{await apiAdminDeleteExam(id);loadAdmin();}catch(e){toast('删除失败');}
 }
 
 // ═══════════════════ TOAST ═══════════════════
@@ -2960,8 +3526,11 @@ function toast(msg){
 // ═══════════════════ INIT ═══════════════════
 (async function bootstrap() {
   try {
+    await initDatabase();
+    await initSupabase();
+    await loadLlmConfigFromCloud();
     await init();
-    loadLlmStatus();
+    applyAuthUI();
     console.log('✅ 系统初始化完成');
   } catch(e) {
     console.error('❌ 系统初始化失败:', e);
@@ -3000,18 +3569,14 @@ async function updateLlmConfig(){
   if(apiKey)body.apiKey=apiKey;
   if(model)body.model=model;
   try{
-    const d={success:true,config:updateLlmConfigBrowser(body)};
+    const cfg = await updateLlmConfigBrowser(body);
     const st=document.getElementById('llmStatus');
-    if(d.success){
-      st.innerHTML='✅ 配置已保存 | Provider: <b>'+d.config.provider+'</b> | Model: <b>'+d.config.model+'</b> | 状态: '+(d.config.enabled?'🟢 AI已激活':'🟡 缺少API Key');
-      document.getElementById('llmApiKey').value='';
-      document.getElementById('llmApiKey').placeholder='已保存 (●●●●)';
-      loadLlmStatus();
-    }else{
-      st.innerHTML='❌ 保存失败: '+d.error;
-    }
+    st.innerHTML='✅ 配置已保存 | Provider: <b>'+cfg.provider+'</b> | Model: <b>'+cfg.model+'</b> | 状态: '+(cfg.enabled?'🟢 AI已激活':'🟡 缺少API Key');
+    document.getElementById('llmApiKey').value='';
+    document.getElementById('llmApiKey').placeholder='已保存 (●●●●)';
+    loadLlmStatus();
   }catch(e){
-    document.getElementById('llmStatus').innerHTML='❌ 网络错误';
+    document.getElementById('llmStatus').innerHTML='❌ 保存失败: ' + e.message;
   }
 }
 
