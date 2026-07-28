@@ -3509,6 +3509,8 @@ function toast(msg){
 // ═══════════════════ INIT ═══════════════════
 (async function bootstrap() {
   try {
+    // 先初始化 token（从 URL hash 读取）
+    getGistToken();
     await initDatabase();
     await loadLlmConfigFromCloud();
     await init();
