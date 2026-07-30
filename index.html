@@ -337,6 +337,19 @@
     <button class="btn btn-outline btn-lg hidden" id="setupAdminBtn" onclick="handleSetupAdminClick()" style="margin-top:8px;">注册首个管理员</button>
     <p id="loginTip" style="margin-top:12px;font-size:12px;color:var(--text-secondary);">考生由管理员创建账号后登录。</p>
     <p id="localModeTip" style="margin-top:12px;font-size:12px;color:var(--warning);display:none;">⚠️ 当前为本地模式，所有数据仅保存在当前设备。如需云端同步，请联系管理员配置 Supabase。</p>
+    <div id="tokenStatusBox" style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);display:none;">
+      <p style="font-size:12px;color:var(--danger);margin:0 0 8px 0;">⚠️ <b>云端存储未连接</b> — 无法保存数据到云端</p>
+      <details style="font-size:11px;color:var(--text-secondary);">
+        <summary style="cursor:pointer;">点击展开：如何设置？</summary>
+        <p style="margin:8px 0 0 0;">请使用以下链接访问本页面（已包含Token）：<br>
+        <a id="tokenSetupLink" href="#" style="color:var(--primary);word-break:break-all;font-size:10px;"></a></p>
+        <p style="margin:8px 0 0 0;">或者在此粘贴 Token：</p>
+        <div style="display:flex;gap:4px;">
+          <input type="password" id="manualTokenInput" placeholder="ghp_..." style="flex:1;padding:4px 8px;border-radius:4px;border:1px solid var(--border);font-size:11px;background:var(--bg-card);color:var(--text-primary);">
+          <button class="btn btn-primary btn-sm" onclick="saveManualToken()" style="white-space:nowrap;">保存</button>
+        </div>
+      </details>
+    </div>
   </div>
 
   <!-- SETUP -->
@@ -465,6 +478,40 @@ function getGistToken() {
   return '';
 }
 
+// 检查 token 状态，更新 UI 提示
+function updateTokenStatusUI() {
+  const box = document.getElementById('tokenStatusBox');
+  const tip = document.getElementById('localModeTip');
+  const link = document.getElementById('tokenSetupLink');
+  if (!box) return;
+  const token = getGistToken();
+  if (!token) {
+    box.style.display = 'block';
+    if (tip) tip.style.display = 'none';
+    if (link) {
+      link.href = '#';
+      link.textContent = '请点击下方"手动设置"输入你的 GitHub Token（以 ghp_ 开头）';
+      link.onclick = function(e) { e.preventDefault(); };
+    }
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+// 手动保存 token
+function saveManualToken() {
+  const input = document.getElementById('manualTokenInput');
+  const token = (input.value || '').trim();
+  if (!token || !token.startsWith('ghp_')) {
+    toast('请输入有效的 GitHub Token（以 ghp_ 开头）');
+    return;
+  }
+  localStorage.setItem('_gt', token);
+  input.value = '';
+  updateTokenStatusUI();
+  toast('✅ Token 已保存！云端存储已连接');
+}
+
 let cloudMode = false;
 let currentUser = null; // { id, role, displayName }
 let gistCache = null;
@@ -482,11 +529,13 @@ async function loadGistData() {
 }
 
 async function saveGistData(data) {
+  const token = getGistToken();
+  if (!token) throw new Error('云端存储未连接：请通过带 Token 的链接访问页面，或在登录页手动设置 Token');
   gistCache = data;
   gistCacheTime = Date.now();
   const resp = await fetch(GIST_API, {
     method: 'PATCH',
-    headers: { 'Authorization': 'Bearer ' + getGistToken(), 'Content-Type': 'application/json' },
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ files: { 'db.json': { content: JSON.stringify(data) } } })
   });
   if (!resp.ok) throw new Error('Gist 保存失败: ' + resp.status);
@@ -761,12 +810,12 @@ const LLM_PROVIDERS = {
   zhipu: { baseURL: 'https://open.bigmodel.cn/api/paas/v4', defaultModel: 'glm-4-flash', name: '智谱GLM' },
 };
 
-// DeepSeek 默认配置（写死，开箱即用）
+// DeepSeek 默认配置（首次使用需在管理后台配置 API Key，之后云端自动同步）
 const DEFAULT_LLM = {
   provider: 'deepseek',
-  apiKey: 'sk-611e8d19ed6d42d58b53a54720dce252',
+  apiKey: '',
   model: 'deepseek-chat',
-  enabled: true
+  enabled: false
 };
 
 let llmConfig = {
@@ -2931,6 +2980,7 @@ function showLoginScreen() {
   document.getElementById('logoutLink').classList.add('hidden');
   document.getElementById('userBadge').classList.add('hidden');
   document.getElementById('headerBadge').textContent = '🔐 请登录';
+  updateTokenStatusUI(); // 检查并显示 token 状态
 }
 
 function showSetupScreen() {
@@ -3511,6 +3561,7 @@ function toast(msg){
   try {
     // 先初始化 token（从 URL hash 读取）
     getGistToken();
+    updateTokenStatusUI();
     await initDatabase();
     await loadLlmConfigFromCloud();
     await init();
