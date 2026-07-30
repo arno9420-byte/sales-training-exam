@@ -520,26 +520,72 @@ let gistCacheTime = 0;
 async function loadGistData() {
   const now = Date.now();
   if (gistCache && (now - gistCacheTime) < 5000) return gistCache;
-  // 加上随机参数绕过 CDN 缓存
-  const resp = await fetch(GIST_RAW + '?t=' + now + '&r=' + Math.random());
-  if (!resp.ok) throw new Error('Gist 加载失败');
-  gistCache = await resp.json();
-  gistCacheTime = now;
-  return gistCache;
+  try {
+    // 加上随机参数绕过 CDN 缓存
+    const resp = await fetch(GIST_RAW + '?t=' + now + '&r=' + Math.random());
+    if (!resp.ok) throw new Error('Gist 加载失败');
+    gistCache = await resp.json();
+    gistCacheTime = now;
+    return gistCache;
+  } catch(e) {
+    console.warn('[Gist] 云端加载失败，尝试本地备份:', e.message);
+    const local = loadFromLocalStorage();
+    if (local) {
+      gistCache = local;
+      gistCacheTime = now;
+      return local;
+    }
+    // 返回空数据结构
+    const empty = { users: [], exams: [], messages: [], scores: [], llmConfig: {} };
+    gistCache = empty;
+    gistCacheTime = now;
+    return empty;
+  }
 }
 
 async function saveGistData(data) {
   const token = getGistToken();
-  if (!token) throw new Error('云端存储未连接：请通过带 Token 的链接访问页面，或在登录页手动设置 Token');
+  if (!token) {
+    console.warn('[Gist] 无 Token，数据仅保存到本地');
+    saveToLocalStorage(data);
+    gistCache = data;
+    gistCacheTime = Date.now();
+    return true; // 不抛异常，静默降级
+  }
   gistCache = data;
   gistCacheTime = Date.now();
-  const resp = await fetch(GIST_API, {
-    method: 'PATCH',
-    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ files: { 'db.json': { content: JSON.stringify(data) } } })
-  });
-  if (!resp.ok) throw new Error('Gist 保存失败: ' + resp.status);
-  return true;
+  try {
+    const resp = await fetch(GIST_API, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'db.json': { content: JSON.stringify(data) } } })
+    });
+    if (!resp.ok) {
+      console.warn('[Gist] 云端保存失败(' + resp.status + ')，数据已保存到本地');
+      saveToLocalStorage(data);
+      return true;
+    }
+    return true;
+  } catch(e) {
+    console.warn('[Gist] 网络错误，数据已保存到本地:', e.message);
+    saveToLocalStorage(data);
+    return true;
+  }
+}
+
+// 本地 localStorage 备份
+function saveToLocalStorage(data) {
+  try {
+    localStorage.setItem('_gist_backup', JSON.stringify(data));
+    localStorage.setItem('_gist_backup_time', Date.now());
+  } catch(e) {}
+}
+
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem('_gist_backup');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
 }
 
 // 强制刷新缓存（写入后调用）
